@@ -212,8 +212,12 @@ export function installSessionMenuDelete(ctx: ClientContext): void {
         }
         closeDialog()
         if (wasCurrent) ctx.sessions.clear()
-        const refresh = (ctx.sessions as { refresh?: () => Promise<void> }).refresh
-        await refresh?.()
+        // Repull the baseline so the deleted row disappears. Must be called AS
+        // A METHOD on ctx.sessions: refresh() reads `this.manager`, and an
+        // extracted reference would throw "this is undefined" — the failure
+        // mode that left deleted cold sessions lingering as ghost rows.
+        const sessions = ctx.sessions as { refresh?: () => Promise<void> }
+        await sessions.refresh?.()
         if (wasCurrent) ctx.layout.toggleSidebar()
       })
 
