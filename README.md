@@ -43,7 +43,7 @@ DSH 本身只提供会话的**重命名 / 分叉 / 归档**，没有删除能力
 从 GitHub 一行装：
 
 ```sh
-dsh plugin --profile web add github:mexiaosqwq/dsh-web-mobile
+dsh plugin --profile web add github:wzxmt-zhc/dsh-web-mobile
 ```
 
 仓库自带构建产物，无 `allowBuilds` 拦截。装完重启 `dsh web`。
