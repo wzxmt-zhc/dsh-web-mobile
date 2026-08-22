@@ -57,13 +57,15 @@ dsh plugin --profile web add link:/path/to/dsh-web-mobile
 
 ## 更新内容
 
-### Unreleased
+### v2.3.0
+
+**变更**
 
 - 优化插件 dsh-meme 移动端的表现
 - Agent preset 模式选择菜单改为底部弹层，不再撑满竖屏
 - 修复后台任务触发器存在时，正在运行的子代理计数不准确的问题
 - 适配最新 dshmarket 移动端 UI（卡片画廊、已安装列表、标签头部）
-- 完成 phase 2-4 代码重组，优化 !important 使用
+- 完成 phase 2-4 代码重组（`components/`、`core/`、`i18n/` 目录迁移，effects 拆分），优化 !important 使用
 - 修复移动端会话头部标题栏的布局异常，隐藏多余的路径分隔符
 
 ### v2.2.0
