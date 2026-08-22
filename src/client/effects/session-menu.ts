@@ -277,16 +277,25 @@ export function installSessionMenuDelete(ctx: ClientContext): void {
         const captured = anchor
         // Close the host menu by toggling its anchor (React-owned state).
         captured?.button.click()
-        if (captured === null || captured === undefined) {
-          showError(navT('deleteErrorResolve'))
-          return
+        try {
+          if (captured === null || captured === undefined) {
+            showError(navT('deleteErrorResolve'))
+            return
+          }
+          const sessionId = resolveSessionId(captured.row, captured.title)
+          if (sessionId === undefined) {
+            showError(navT('deleteErrorResolve'))
+            return
+          }
+          showDeleteDialog(sessionId, captured.title)
+        } catch (reason) {
+          // Never fail silently: surface internal resolution errors instead of
+          // leaving the tap with no visible result.
+          console.error('[dsh-mobile-nav] session delete failed:', reason)
+          showError(navT('deleteErrorGeneric', {
+            message: reason instanceof Error ? reason.message : String(reason),
+          }))
         }
-        const sessionId = resolveSessionId(captured.row, captured.title)
-        if (sessionId === undefined) {
-          showError(navT('deleteErrorResolve'))
-          return
-        }
-        showDeleteDialog(sessionId, captured.title)
       })
       viewport.appendChild(clone)
     }
