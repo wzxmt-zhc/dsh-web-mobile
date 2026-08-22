@@ -306,14 +306,16 @@ export function installSessionMenuDelete(ctx: ClientContext): void {
     }
 
     // Capture the ⋯ button click before React handles it, so the row/title
-    // are known when the portaled menu appears.
+    // are known when the portaled menu appears. The host renders the anchor
+    // button WITHOUT `aria-haspopup` (Menu renders `{anchor}` verbatim), so
+    // the row's single button IS the ⋯ anchor — no attribute to match on.
     const onDocumentClick = (event: MouseEvent): void => {
       const target = event.target as HTMLElement | null
       if (target === null) return
-      const button = target.closest<HTMLButtonElement>('button[aria-haspopup="menu"]')
-      if (button === null) return
-      const row = button.closest<HTMLElement>('[class*="_sessionRow"]')
+      const row = target.closest<HTMLElement>('[class*="_sessionRow"]')
       if (row === null) return
+      const button = row.querySelector<HTMLButtonElement>('button')
+      if (button === null) return
       const title = row.querySelector<HTMLElement>('[class*="_title"]')?.textContent?.trim() ?? ''
       anchor = { button, row, title }
       scheduleInject()
