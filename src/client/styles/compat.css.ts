@@ -553,6 +553,112 @@ export const COMPAT_CSS = `@media (max-width: 1023px) {
     padding-top: 40px !important;
   }
 
+  /* ---------- dsh-meme 表情选择卡片：右缘安全距离 ----------
+     The meme picker (conversation.input.overlay, id meme-picker) is
+     absolutely positioned left:0 inside the composer's overlay anchor with
+     width:min(360px,90vw). That 90vw resolves against the VIEWPORT, not the
+     anchor, and with the picker's own padding+border the border-box
+     (377px on a 390px phone) exceeds the 356px anchor — the card's right
+     edge then runs past the anchor and off the right screen edge, while the
+     left edge keeps the anchor's 17px safe inset. Stretch the card to the
+     anchor on both sides (left/right 0, width auto, border-box) so the
+     right gap mirrors the left; cap at the card's original border-box size
+     (360px content + 24px padding + 2px border) so tablets keep the
+     intended card width instead of stretching. Desktop is untouched: the
+     frame marker only exists below 1024px. */
+  [data-mobile-nav="frame"] .meme-picker {
+    left: 0 !important;
+    right: 0 !important;
+    width: auto !important;
+    box-sizing: border-box !important;
+    max-width: 386px !important;
+  }
+
+  /* dsh-meme 网格缩略图：自适应铺满卡片,保留 8px 间隙。
+     dsh-meme 的 .mp-grid 是 flex-wrap + 固定 76px 的 .mp-cell(行内 style 再压到 74px):
+     3 列(390px 手机)时每行右侧剩 ~78px 空白,卡片没有铺满。换成响应式 grid:
+     repeat(auto-fill, minmax(64px,1fr)) 让列数随可用宽度伸缩、卡片 width:100% +
+     aspect-ratio:1 随轨道自适应(方形,cover 裁切不变),gap 仍是 dsh-meme 的 8px。
+     行内 width/height 用 !important 覆盖;手机端约 4 列、平板端约 5 列,均满宽。 */
+  [data-mobile-nav="frame"] .meme-picker .mp-grid {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(64px, 1fr)) !important;
+    scrollbar-width: thin !important;
+    scrollbar-color: var(--dsw-alias-label-tertiary, rgba(0, 0, 0, .3)) transparent !important;
+  }
+  [data-mobile-nav="frame"] .meme-picker .mp-cell {
+    width: 100% !important;
+    height: auto !important;
+    aspect-ratio: 1 !important;
+  }
+  /* dsh-meme 网格右侧滚动条：默认 WebKit 滚动条在手机上看太粗,压成 4px
+     细条——保留滚动指示又不占横向空间,thumb 圆角浅色、轨道透明。 */
+  [data-mobile-nav="frame"] .meme-picker .mp-grid::-webkit-scrollbar {
+    width: 4px !important;
+  }
+  [data-mobile-nav="frame"] .meme-picker .mp-grid::-webkit-scrollbar-thumb {
+    background: var(--dsw-alias-label-tertiary, rgba(0, 0, 0, .3)) !important;
+    border-radius: 999px !important;
+  }
+  [data-mobile-nav="frame"] .meme-picker .mp-grid::-webkit-scrollbar-track {
+    background: transparent !important;
+  }
+
+  /* ---------- agent preset 模式选择菜单：手机端紧凑底部弹层 ----------
+     The official agent-preset menu (role=menu, portal mounted on body) uses
+     position:fixed + max-height:820px + bottom:12px, so on a phone it
+     stretches from the trigger down to 12px above the screen bottom —
+     effectively filling the screen. Turn it into a polished bottom sheet:
+     cap the height, center it horizontally (the official max-width 360px
+     left-anchors at left:12px, leaving 12/18px asymmetric gaps), add a
+     drag-handle affordance, breathing room, and softer top radius; the
+     inner viewport keeps scrolling. Scoped to the agent-preset item class
+     (cubgiG_*) so other role=menu dropdowns (model/access mode) are
+     untouched. Desktop ≥1024px is outside the media query, so it keeps the
+     official large dropdown. */
+  /* agent-preset 菜单依赖 @deepseek-ai/dsh-client-ui-agent-preset 的 CSS Module 哈希 (cubgiG_*)，升级该包时需验证此选择器是否仍有效 */
+  [role="menu"]:has([class*="cubgiG_item"]) {
+    top: auto !important;
+    left: 50% !important;
+    right: auto !important;
+    bottom: 12px !important;
+    transform: translateX(-50%) !important;
+    width: min(100% - 24px, 360px) !important;
+    max-width: 360px !important;
+    max-height: min(55dvh, 440px) !important;
+    padding: 30px 6px 10px !important;
+    border-radius: 16px !important;
+  }
+  [role="menu"]:has([class*="cubgiG_item"])::before {
+    content: '';
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 36px;
+    height: 4px;
+    border-radius: 999px;
+    background: var(--dsw-alias-border-l2, rgba(0, 0, 0, .22)) !important;
+    pointer-events: none;
+  }
+  /* 菜单内部滚动条：默认 WebKit 滚动条在竖屏太粗,会占 ~15px 宽度把文字描述
+     挤窄,导致描述换行/截断不自然。压成 4px 细条(与表情网格一致),文字区域
+     恢复自适应宽度。 */
+  [role="menu"]:has([class*="cubgiG_item"]) [class*="_viewport_"] {
+    scrollbar-width: thin !important;
+    scrollbar-color: var(--dsw-alias-label-tertiary, rgba(0, 0, 0, .3)) transparent !important;
+  }
+  [role="menu"]:has([class*="cubgiG_item"]) [class*="_viewport_"]::-webkit-scrollbar {
+    width: 4px !important;
+  }
+  [role="menu"]:has([class*="cubgiG_item"]) [class*="_viewport_"]::-webkit-scrollbar-thumb {
+    background: var(--dsw-alias-label-tertiary, rgba(0, 0, 0, .3)) !important;
+    border-radius: 999px !important;
+  }
+  [role="menu"]:has([class*="cubgiG_item"]) [class*="_viewport_"]::-webkit-scrollbar-track {
+    background: transparent !important;
+  }
+
 /* 搜索框底部间距修复 */
 [aria-modal="true"] [class*="tabSearchRow"] {
   padding: 2px 4px 16px !important;
@@ -560,14 +666,14 @@ export const COMPAT_CSS = `@media (max-width: 1023px) {
 
 
 /* ===== 已安装列表：路径单行截断 ===== */
-[class*="irow"] > div > [class*="spec"] {
+[class*="irow"]:not([class*="irowActions"]):not([class*="irowTrailing"]) > div > [class*="spec"] {
   white-space: nowrap !important;
   overflow: hidden !important;
   text-overflow: ellipsis !important;
   max-width: 100% !important;
   font-size: 12px !important;
 }
-[class*="irow"] > div > [class*="nm"] {
+[class*="irow"]:not([class*="irowActions"]):not([class*="irowTrailing"]) > div > [class*="nm"] {
   white-space: nowrap !important;
   overflow: hidden !important;
   text-overflow: ellipsis !important;
@@ -575,34 +681,62 @@ export const COMPAT_CSS = `@media (max-width: 1023px) {
 }
 /* ===== 已安装列表：手机端纵向重排 ===== */
 @media (max-width: 1023px) {
-  [class*="irow"] {
+  [class*="irow"]:not([class*="irowActions"]):not([class*="irowTrailing"]) {
     flex-wrap: wrap !important;
     align-items: center !important;
     gap: 4px 10px !important;
   }
-  [class*="irow"] > div:first-child {
+  [class*="irow"]:not([class*="irowActions"]):not([class*="irowTrailing"]) > div:first-child {
     flex: 1 1 100% !important;
     max-width: 100% !important;
     min-width: 0 !important;
   }
-  [class*="irow"] > [class*="grow"] {
+  [class*="irow"]:not([class*="irowActions"]):not([class*="irowTrailing"]) > [class*="grow"] {
     flex: 1 1 auto !important;
   }
-  [class*="irow"] > button {
+  [class*="irow"]:not([class*="irowActions"]):not([class*="irowTrailing"]) > button {
     flex: 0 0 auto !important;
   }
-  [class*="irow"] > button[class*="switch"] {
+  [class*="irow"]:not([class*="irowActions"]):not([class*="irowTrailing"]) > button[class*="switch"] {
     order: 3 !important;
   }
-  [class*="irow"] > button:not([class*="switch"]) {
+  [class*="irow"]:not([class*="irowActions"]):not([class*="irowTrailing"]) > button:not([class*="switch"]) {
     order: 2 !important;
   }
-  [class*="irow"] > [class*="owner"] {
+  [class*="irow"]:not([class*="irowActions"]):not([class*="irowTrailing"]) > [class*="owner"] {
     order: 1 !important;
   }
-  [class*="irow"] > [class*="grow"] {
+  [class*="irow"]:not([class*="irowActions"]):not([class*="irowTrailing"]) > [class*="grow"] {
     order: 0 !important;
   }
+}
+/* ===== 市场卡片图片容器：横向滚动 ===== */
+[data-mobile-nav="frame"] [class*="cardShots"] {
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+  scrollbar-width: thin !important;
+  min-width: 0 !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  gap: 8px !important;
+  padding: 4px 0 !important;
+}
+[data-mobile-nav="frame"] [class*="cardShots"] > [class*="cardShot"] {
+  flex: 0 0 min(100%, 420px) !important;
+  width: min(100%, 420px) !important;
+  max-width: 100% !important;
+  height: auto !important;
+  display: block !important;
+  object-fit: contain !important;
+}
+[data-mobile-nav="frame"] [class*="cardShots"]::-webkit-scrollbar {
+  height: 4px !important;
+}
+[data-mobile-nav="frame"] [class*="cardShots"]::-webkit-scrollbar-thumb {
+  background: var(--ds-border-color, #ccc) !important;
+  border-radius: 4px !important;
 }
 }
 

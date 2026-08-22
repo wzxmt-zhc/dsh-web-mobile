@@ -1,7 +1,5 @@
 import type { ClientContext } from '@deepseek-ai/dsh-client-runtime/client';
-import type { TranslateNS } from '@deepseek-ai/dsh-client-ui-slots';
-import type { ReconcilerTask } from './reconciler-core.ts';
-declare const NS = "mobileNav";
+import type { ReconcilerTask } from '../core/reconciler-core.ts';
 /** Same breakpoint as the shell's SIDEBAR_AUTO_COLLAPSE (viewport < 1024). */
 export declare const MOBILE_QUERY = "(max-width: 1023px)";
 /** Desktop no-op boundary, kept next to the mobile query for one source of truth. */
@@ -30,7 +28,7 @@ export declare function installFrameController(): () => void;
  * are unit-testable; kept reachable from here so the third-party task modules
  * (aionui-compat, stats-line) keep importing it via `./phone-chrome.ts`.
  */
-export type { ReconcilerTask } from './reconciler-core.ts';
+export type { ReconcilerTask } from '../core/reconciler-core.ts';
 /**
  * One full-tree MutationObserver for every mobile DOM reconciler. Tasks can be
  * registered from React or plain effects; they only run while the mobile
@@ -58,15 +56,6 @@ export declare function addReconcilerTask(task: ReconcilerTask): () => void;
  */
 export declare function installPhoneChrome(ctx: ClientContext): void;
 /**
- * Overlay elements: the dimmed backdrop (closes the drawer on tap) and the
- * floating directory button for hero/blank phases with no session header.
- * Both are plain DOM nodes reconciled against the frame's collapsed marker
- * (the shell sets `data-sidebar-collapsed` when the drawer is closed). The
- * removed MobileNavOverlay React component used to render these; they live
- * here now, owned by the shared reconciler.
- */
-export declare function createOverlayTask(t: TranslateNS<typeof NS>, toggleSidebar: () => void): ReconcilerTask;
-/**
  * Drawer close interactions that are plain event listeners, not DOM
  * reconciliation:
  * - Escape closes the drawer (yielding to any open modal dialog, which owns
@@ -78,9 +67,7 @@ export declare function createOverlayTask(t: TranslateNS<typeof NS>, toggleSideb
  */
 export declare function installOverlayInteractions(ctx: ClientContext): void;
 /**
- * Register the shared DOM reconciler tasks that used to each own a full-tree
- * MutationObserver. The React FAB task is registered separately from the
- * overlay component because it drives React state. Returns a disposer that
+ * Register the shared DOM reconciler tasks. Returns a disposer that
  * unregisters every task and resets the flag, so a same-environment plugin
  * reload can rebuild the reconciler from scratch.
  */

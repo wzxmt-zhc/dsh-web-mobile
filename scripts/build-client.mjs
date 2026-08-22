@@ -40,8 +40,9 @@ const REQUIRE_RE = /require\("(\.[^"]+\.js)"\)/g
 // forward-slash key used in __modules (e.g. styles/index.js requires
 // "./base.css.js" -> "styles/base.css.js").
 const resolveChild = (parent, rel) => {
-  const joined = posix.join(posix.dirname(parent), rel.slice(2))
-  return joined === '.' ? '' : joined
+  const joined = posix.join(posix.dirname(parent), rel)
+  const normalized = posix.normalize(joined)
+  return normalized === '.' ? '' : normalized
 }
 
 // Dependency-first topological order from the entry.

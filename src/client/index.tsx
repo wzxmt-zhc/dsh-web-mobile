@@ -1,13 +1,13 @@
 import type { ClientContext } from '@deepseek-ai/dsh-client-runtime/client'
-import { MobileNavToggle } from './MobileNavToggle.tsx'
-import { MobileDrawerFooter } from './MobileDrawerFooter.tsx'
+import { MobileNavToggle } from './components/MobileNavToggle.tsx'
+import { MobileDrawerFooter } from './components/MobileDrawerFooter.tsx'
 import { MOBILE_CSS } from './styles/index.ts'
-import { installDebugBadge } from './debug.ts'
+
 import { installFrameController, installOverlayInteractions, installPhoneChrome, installReconciler, registerReconcileTasks } from './effects/phone-chrome.ts'
 import { installAionuiCompat } from './effects/aionui-compat.ts'
 import { installSessionMenuDelete } from './effects/session-menu.ts'
-import { NS, en, zh } from './locales.ts'
-import type { MobileNavKey } from './locales.ts'
+import { NS, en, zh } from './i18n/locales.ts'
+import type { MobileNavKey } from './i18n/locales.ts'
 
 declare module '@deepseek-ai/dsh-client-ui-slots' {
   interface LocaleNamespaceMap {
@@ -46,17 +46,39 @@ export function apply(ctx: ClientContext): void {
 
   // Hard-fix the installed-plugins list text layout: the host market UI
   // injects its own CSS after this plugin's stylesheet, so CSS overrides can
-  // be beaten. Inline !important styles win over every external rule.
+  // be beaten. Inline !important styles win over every external rule. Keep
+  // the selector on outer rows only; irowActions/irowTrailing are nested
+  // flex containers and must retain the market's own action geometry.
   ctx.effect(() => {
     const mq = window.matchMedia('(max-width: 1023px)')
+    const rowSelector = '[class*="irow"]:not([class*="irowActions"]):not([class*="irowTrailing"])'
     const set = (el: HTMLElement, props: Record<string, string>): void => {
       for (const [key, value] of Object.entries(props)) {
         el.style.setProperty(key, value, 'important')
       }
     }
+    const unset = (el: HTMLElement, props: readonly string[]): void => {
+      for (const key of props) el.style.removeProperty(key)
+    }
+    const rowProps = ['flex-wrap', 'align-items', 'gap'] as const
+    const firstProps = ['flex', 'max-width', 'min-width'] as const
+    const textProps = ['white-space', 'overflow', 'text-overflow', 'max-width'] as const
+    const clear = (): void => {
+      document.querySelectorAll<HTMLElement>(rowSelector).forEach((row) => {
+        unset(row, rowProps)
+        const first = row.children[0] as HTMLElement | undefined
+        if (first) unset(first, firstProps)
+        row.querySelectorAll<HTMLElement>(':scope > button, :scope > [class*="owner"], :scope > [class*="grow"]').forEach((el) => {
+          unset(el, ['order'])
+        })
+        const spec = row.querySelector<HTMLElement>('[class*="spec"]')
+        const nm = row.querySelector<HTMLElement>('[class*="nm"]')
+        if (spec) unset(spec, textProps)
+        if (nm) unset(nm, textProps)
+      })
+    }
     const apply = (): void => {
-      if (!mq.matches) return
-      document.querySelectorAll<HTMLElement>('[class*="irow"]').forEach((row) => {
+      document.querySelectorAll<HTMLElement>(rowSelector).forEach((row) => {
         set(row, {
           'flex-wrap': 'wrap',
           'align-items': 'center',
@@ -70,18 +92,6 @@ export function apply(ctx: ClientContext): void {
             'min-width': '0',
           })
         }
-        row.querySelectorAll<HTMLElement>(':scope > button[class*="switch"]').forEach((el) => {
-          set(el, { 'order': '3' })
-        })
-        row.querySelectorAll<HTMLElement>(':scope > button:not([class*="switch"])').forEach((el) => {
-          set(el, { 'order': '2' })
-        })
-        row.querySelectorAll<HTMLElement>(':scope > [class*="owner"]').forEach((el) => {
-          set(el, { 'order': '1' })
-        })
-        row.querySelectorAll<HTMLElement>(':scope > [class*="grow"]').forEach((el) => {
-          set(el, { 'order': '0' })
-        })
         const spec = row.querySelector<HTMLElement>('[class*="spec"]')
         const nm = row.querySelector<HTMLElement>('[class*="nm"]')
         if (spec) {
@@ -102,16 +112,20 @@ export function apply(ctx: ClientContext): void {
         }
       })
     }
-    apply()
-    const mo = new MutationObserver(apply)
-    mo.observe(document.documentElement, { childList: true, subtree: true })
-    const onMq = (): void => {
+    const arm = (): void => {
+      clear()
       if (mq.matches) apply()
     }
-    mq.addEventListener('change', onMq)
+    arm()
+    const mo = new MutationObserver(() => {
+      if (mq.matches) apply()
+    })
+    mo.observe(document.documentElement, { childList: true, subtree: true })
+    mq.addEventListener('change', arm)
     return () => {
       mo.disconnect()
-      mq.removeEventListener('change', onMq)
+      mq.removeEventListener('change', arm)
+      clear()
     }
   }, 'dsh-mobile-nav: installed-list-inline-styles')
 
@@ -130,8 +144,7 @@ export function apply(ctx: ClientContext): void {
     }
   }, 'dsh-mobile-nav: reconciler infrastructure')
 
-  // Diagnostic overlay for phone-side repros (?mobile-nav-debug=1).
-  installDebugBadge(ctx)
+
 
   // Drawer close interactions: Escape and navigation taps inside the drawer.
   installOverlayInteractions(ctx)

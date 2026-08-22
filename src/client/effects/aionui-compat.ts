@@ -24,7 +24,23 @@ export function installAionuiCompat(ctx: ClientContext): void {
       const row = target.closest('[data-aionui-explorer-col] [class*="_treeRow"]')
       if (row === null) return
       if (row.querySelector('[class*="_treeArrow"]:not([class*="_treeArrowEmpty"])') !== null) return
-      getFrame()?.setAttribute('data-aionui-preview-open', '')
+
+      // Temporarily spoof platform, userAgent, and appVersion to Win32 desktop to bypass Android check
+      const originalPlatform = navigator.platform
+      const originalUserAgent = navigator.userAgent
+      const originalAppVersion = navigator.appVersion
+      try {
+        Object.defineProperty(navigator, 'platform', { value: 'Win32', configurable: true })
+        Object.defineProperty(navigator, 'userAgent', { value: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36', configurable: true })
+        Object.defineProperty(navigator, 'appVersion', { value: '5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36', configurable: true })
+        getFrame()?.setAttribute('data-aionui-preview-open', '')
+      } finally {
+        setTimeout(() => {
+          Object.defineProperty(navigator, 'platform', { value: originalPlatform, configurable: true })
+          Object.defineProperty(navigator, 'userAgent', { value: originalUserAgent, configurable: true })
+          Object.defineProperty(navigator, 'appVersion', { value: originalAppVersion, configurable: true })
+        }, 1000)
+      }
     }
     const onCollapse = (event: MouseEvent) => {
       const target = event.target as HTMLElement | null

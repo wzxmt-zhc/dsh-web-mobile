@@ -1,7 +1,7 @@
 ![dsh-web-mobile — 手机上也能好好用 DSH](assets/banner.png)
 
 <p align="center">
-  <strong>移动端适配插件 dsh-web-mobile</strong> — 窄屏好用，宽屏不动
+  <strong>DSH Web UI 移动端适配：窄屏好用，宽屏适用</strong>
 </p>
 
 <p align="center">
@@ -57,6 +57,15 @@ dsh plugin --profile web add link:/path/to/dsh-web-mobile
 
 ## 更新内容
 
+### Unreleased
+
+- 优化插件 dsh-meme 移动端的表现
+- Agent preset 模式选择菜单改为底部弹层，不再撑满竖屏
+- 修复后台任务触发器存在时，正在运行的子代理计数不准确的问题
+- 适配最新 dshmarket 移动端 UI（卡片画廊、已安装列表、标签头部）
+- 完成 phase 2-4 代码重组，优化 !important 使用
+- 修复移动端会话头部标题栏的布局异常，隐藏多余的路径分隔符
+
 ### v2.2.0
 
 **变更**
@@ -111,10 +120,11 @@ dsh plugin --profile web add link:/path/to/dsh-web-mobile
 
 ## 兼容插件
 
-- [dsh-web-ui 全家桶](https://www.npmjs.com/package/@linxin666/dsh-web-ui-all)——**0.1.14**
-- [dshmarket](https://www.npmjs.com/package/dshmarket)——**1.2.2**
+- [dsh-web-ui](https://www.npmjs.com/package/@linxin666/dsh-web-ui-all)——**0.1.14**
+- [dshmarket](https://www.npmjs.com/package/dshmarket)——**v1.17.1**
 - [dsh-usage-stats](https://github.com/Ychris12138/dsh-usage-stats)——**0.1.2**
 - [dsh-genui](https://github.com/omdsh-dev/dsh-genui)——**0.8.3**
+- [dsh-meme](https://github.com/mexiaosqwq/dsh-meme)——**v0.1.39**
 
 ## 构建
 

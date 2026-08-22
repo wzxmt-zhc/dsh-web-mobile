@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { createReconcilerCore } from '../src/client/effects/reconciler-core.ts'
-import type { FrameRequest, ReconcilerCore, ReconcilerTask } from '../src/client/effects/reconciler-core.ts'
+import { createReconcilerCore } from '../src/client/core/reconciler-core.ts'
+import type { FrameRequest, ReconcilerCore, ReconcilerTask } from '../src/client/core/reconciler-core.ts'
 import { createPreviewCloseTask } from '../src/client/effects/aionui-compat.ts'
 
 interface Harness {

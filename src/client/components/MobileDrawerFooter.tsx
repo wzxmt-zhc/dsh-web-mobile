@@ -1,7 +1,7 @@
 import type { PropsLocale, PropsRuntime } from '@deepseek-ai/dsh-client-ui-slots'
 import { IconDownloadOutline16, IconPanelLeftOutline16 } from '@deepseek-ai/dsh-client-ui-primitives'
-import { NS } from './locales.ts'
-import { getFrame } from './effects/phone-chrome.ts'
+import { NS } from '../i18n/locales.ts'
+import { getFrame } from '../effects/phone-chrome.ts'
 
 /** Full props for the sidebar footer action entry. */
 export interface MobileDrawerFooterProps extends PropsRuntime<'sidebar.footer.action'>, PropsLocale<typeof NS> {

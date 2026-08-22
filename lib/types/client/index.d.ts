@@ -1,5 +1,5 @@
 import type { ClientContext } from '@deepseek-ai/dsh-client-runtime/client';
-import type { MobileNavKey } from './locales.ts';
+import type { MobileNavKey } from './i18n/locales.ts';
 declare module '@deepseek-ai/dsh-client-ui-slots' {
     interface LocaleNamespaceMap {
         /** Directory-drawer controls copy. */

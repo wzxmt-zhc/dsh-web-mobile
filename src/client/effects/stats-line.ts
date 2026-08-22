@@ -1,4 +1,4 @@
-import type { ReconcilerTask } from './phone-chrome.ts'
+import type { ReconcilerTask } from '../core/reconciler-core.ts'
 
 // The official conversation status row (turns / steps / LLM time / TTFT /
 // cache) has a hashed class, so the stylesheet cannot target it directly.
@@ -36,7 +36,7 @@ export function createStatsLineTask(): ReconcilerTask {
     }
   }
   const mark = (): void => {
-    for (const root of document.querySelectorAll('[data-phase] [class$="_root"]')) {
+    for (const root of document.querySelectorAll('[data-phase] [class*="_root"]')) {
       // The status row lives inside the composer stack; message-area
       // blocks can also mention turns/steps and must be skipped.
       if (root.closest('[class$="_composerStack"]') === null) continue
