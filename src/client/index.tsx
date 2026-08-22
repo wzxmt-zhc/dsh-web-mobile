@@ -16,7 +16,7 @@ declare module '@deepseek-ai/dsh-client-ui-slots' {
 }
 
 /** Required services (cordis fiber inject — the loader passes all module exports as an object plugin). */
-export const inject = ['slots', 'layout', 'locale', 'sessionLogDownload']
+export const inject = ['slots', 'layout', 'locale', 'sessionLogDownload', 'sessions']
 
 /**
  * Mobile-adaptive shell, browser half: injects the mobile stylesheet, then
@@ -166,10 +166,18 @@ export function apply(ctx: ClientContext): void {
     id: 'mobile-nav-session-log',
     order: 5,
     locale: NS,
-    inject: () => ({
-      downloadSessionLog: (sessionId: string) => ctx.sessionLogDownload.download(sessionId),
-      toggleSidebar: () => ctx.layout.toggleSidebar(),
-    }),
+    inject: () => {
+      // `ctx.sessions.refresh()` repulls the session baseline; rc.6 keeps it
+      // off the ISessions face (wire-pump internals), so probe the concrete
+      // service — every version this plugin supports carries it.
+      const refresh = (ctx.sessions as { refresh?: () => Promise<void> }).refresh
+      return {
+        downloadSessionLog: (sessionId: string) => ctx.sessionLogDownload.download(sessionId),
+        toggleSidebar: () => ctx.layout.toggleSidebar(),
+        refreshSessions: () => (refresh === undefined ? Promise.resolve() : refresh()),
+        clearSessions: () => ctx.sessions.clear(),
+      }
+    },
   }, MobileDrawerFooter))
 }
 

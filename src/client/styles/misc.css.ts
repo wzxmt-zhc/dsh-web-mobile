@@ -144,6 +144,7 @@ export const MISC_CSS = `@media (max-width: 1023px) {
   [data-mobile-nav="backdrop"],
   [data-mobile-nav="session-log"],
   [data-mobile-nav="explorer"],
+  [data-mobile-nav="delete-session"],
   [data-mobile-nav="drawer-actions"] {
     display: none !important;
   }

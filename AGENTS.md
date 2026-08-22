@@ -2,12 +2,12 @@
 
 ## Project
 
-- Single-package, client-only plugin for the DSH (DeepSeek Harness) Web UI. It adapts the web UI to portrait/mobile viewports below 1024px (overlay drawer, full-width conversation, adapted settings/explorer/preview sheets, status-bar safe areas, composer row, stats line). At ≥1024px it must be a complete no-op.
+- Single-package plugin for the DSH (DeepSeek Harness) Web UI. It adapts the web UI to portrait/mobile viewports below 1024px (overlay drawer, full-width conversation, adapted settings/explorer/preview sheets, status-bar safe areas, composer row, stats line). At ≥1024px it must be a complete no-op. Almost everything is browser behavior in `src/client/`; the host half (`src/index.ts`) stays minimal but is NOT empty: it owns the one host capability the drawer needs that the harness lacks — session deletion (`POST /api/mobile-nav.session.delete`, see "Session delete" below).
 - Names differ by boundary: README/GitHub project = `dsh-web-mobile`; npm package = `@dsh-external/dsh-mobile-nav`; patch row id = `dsh-mobile-nav`.
 - No monorepo, no application server, no workspace layer.
 - Real entrypoints:
   - `cordis.patch.yml` inserts the single host plugin row.
-  - `src/index.ts` is the host half and intentionally exports an empty `apply()` so the row is visible to the host Loader.
+  - `src/index.ts` is the host half: minimal, but it owns the session-delete route (`POST /api/mobile-nav.session.delete`, registered once `webServer` exists) that the browser half's drawer footer calls. See "Session delete" below.
   - `package.json` exposes `./client` and declares `dsh.client.platform: "web"`; DSH discovers the browser half from `src/client/index.tsx`.
 - Key layout:
   - `src/client/` — browser half (components, effects, styles, locales, debug).
@@ -50,10 +50,10 @@ dsh web
 
 ## Architecture
 
-- Host/client split is load-bearing. All browser behavior lives in `src/client/`; the host half stays an empty `apply()`.
-- `src/client/index.tsx` injects `['slots', 'layout', 'locale', 'sessionLogDownload']`. Its `apply()` registers locale dictionaries, injects one `<style data-plugin>` tag, installs effects, and registers exactly two slots:
+- Host/client split is load-bearing. All browser behavior lives in `src/client/`; the host half is minimal — it only owns the session-delete route (see "Session delete" below).
+- `src/client/index.tsx` injects `['slots', 'layout', 'locale', 'sessionLogDownload', 'sessions']`. Its `apply()` registers locale dictionaries, injects one `<style data-plugin>` tag, installs effects, and registers exactly two slots:
   - `conversation.session.header.actions` → `MobileNavToggle` (`order: 10`): drawer toggle + Files button.
-  - `sidebar.footer.action` → `MobileDrawerFooter` (`order: 5`): Files + session-log actions. Order 5 keeps them below the remote icon row (order default 0) and above usage badges (order 10). Do not tie with usage stats.
+  - `sidebar.footer.action` → `MobileDrawerFooter` (`order: 5`): Files + session-log + delete-session actions. Order 5 keeps them below the remote icon row (order default 0) and above usage badges (order 10). Do not tie with usage stats.
   - There is **no settings slot** anymore; the haptic feedback feature was removed.
 - Shared full-tree reconciler:
   - `src/client/effects/reconciler-core.ts` is a DOM-free engine with **zero imports**. It owns task registry, dirty-key routing (`scopes`), coalesced rAF flush scheduling, and per-task error isolation.
@@ -68,9 +68,19 @@ dsh web
 - Styles: `src/client/styles/index.ts` concatenates `base → layout → compat → misc` in that load-bearing order and injects one `<style data-plugin="@dsh-external/dsh-mobile-nav">`. Mobile rules target `(max-width: 1023px)`; desktop rules hide mobile controls and must preserve the uninstalled layout.
 - Third-party compatibility is implemented through scoped DOM markers, stable `data-*` attributes, `MutationObserver`, and carefully scoped class/text anchors. Never modify third-party source packages.
 
+## Session delete
+
+DSH has NO session-delete API (the session menu only offers rename / fork / archive; `workspace.archiveSession` only hides a row). The plugin provides deletion end to end:
+
+- Host half (`src/index.ts`) registers `POST /api/mobile-nav.session.delete` (`{ sessionId }` → `{ ok, deleted }` or `{ error: { code, message } }`) once `webServer` exists (`ctx.inject`). It refuses live sessions (`sessions.get(id)` present ⇒ an agent is attached) with `session-active`; resolves the header via `sessionPersistence.list()`; removes the JSONL artifact via `sessionPersistence.locate(header)` + `rm`; then `detachSession`s the id from every `workspaceRegistry` workspace. The session-query index prunes vanished sessions itself.
+- Browser half (`MobileDrawerFooter`, `data-mobile-nav="delete-session"`) targets the CURRENT session with an inline confirm (`delete-confirm`); on success it `clear()`s the selection when the deleted id was current, repulls the baseline, and closes the drawer. Errors map codes to locale copy (`deleteErrorSessionActive` / `deleteErrorNotFound` / `deleteErrorGeneric`).
+- `ctx.sessions.refresh()` is NOT on the rc.6 `ISessions` face; probe the concrete service (`'refresh' in ctx.sessions`) before calling.
+- `lib/` and the peer set change together: the host half types against `@deepseek-ai/dsh-host-webserver`, `dsh-session-persistence`, `dsh-workspace`, `dsh-session` (Context augmentations pulled via type-only imports in `src/index.ts`). Keep those peers in `package.json` when editing the host half.
+- Only JSONL-backend sessions are deletable; any other persistence backend returns `unsupported-persistence-backend` instead of pretending.
+
 ## Conventions
 
-- Keep the host/client split intact; the empty host `apply()` is intentional.
+- Keep the host/client split intact; the host half must stay minimal — it owns only the session-delete route (see "Session delete" below), never UI.
 - Use stable `data-*` markers and structural selectors before hashed classes. For unavoidable hashed classes, scope substring/suffix selectors to the owning region; for tree rows use `[class*="_treeRow"]` and exclude `[class*="_treeArrowEmpty"]` when distinguishing directories from files.
 - Put every long-lived style tag, listener, timer, or `MutationObserver` inside `ctx.effect(() => { ...; return disposer }, label)`. Re-arm width-sensitive effects on `matchMedia('(max-width: 1023px)')` changes via `installMobileEffect` so wide→narrow transitions work.
 - Treat DOM markers as the cross-module state contract: `data-mobile-nav="frame"`, `data-sidebar-collapsed`, `data-aionui-explorer-open`, `data-aionui-preview-open`, `data-mobile-preview-full`, `data-mobile-nav="stats"`.
@@ -101,7 +111,7 @@ dsh web
 - Automated gates: `pnpm verify` (typecheck) and `pnpm test:core` (reconciler-core unit tests). `pnpm build` additionally exercises the custom client bundler. Use `git diff --check` for whitespace hygiene.
 - There is no linter, formatter, coverage setup, or CI workflow.
 - After source/layout changes, install the linked plugin in a real DSH Web profile, restart `dsh web`, and check both sides of the breakpoint:
-  - **Narrow phone (~390px):** rail hidden; drawer/FAB/backdrop open and close; Escape; session-row action menus do not close the drawer; settings remains usable; Files opens explorer/preview sheets; session-log/footer actions work; preview fullscreen opens and resets.
+  - **Narrow phone (~390px):** rail hidden; drawer/FAB/backdrop open and close; Escape; session-row action menus do not close the drawer; settings remains usable; Files opens explorer/preview sheets; session-log/footer actions work; delete-session confirm flow works (idle session deletes and the row disappears; a live session shows the `session-active` error); preview fullscreen opens and resets.
   - **Tablet (768–1023px):** verify the intended centered and width-constrained sheet geometry separately from phone behavior.
   - **Desktop (≥1024px):** compare with the plugin disabled; there must be no layout or interaction change.
 - For phone-side debugging, add `?mobile-nav-debug=1` to display live viewport, frame/marker, floating-panel, and captured-JavaScript-error state. The optional `pnpm smoke:cdp` is a targeted smoke probe, not a replacement for real-profile checks.

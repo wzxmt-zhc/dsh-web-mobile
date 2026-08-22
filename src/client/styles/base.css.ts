@@ -38,7 +38,8 @@ export const BASE_CSS = `
   gap: 8px;
 }
 [data-mobile-nav="session-log"],
-[data-mobile-nav="explorer"] {
+[data-mobile-nav="explorer"],
+[data-mobile-nav="delete-session"] {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -56,12 +57,79 @@ export const BASE_CSS = `
   -webkit-tap-highlight-color: transparent;
 }
 [data-mobile-nav="session-log"]:hover:not(:disabled),
-[data-mobile-nav="explorer"]:hover {
+[data-mobile-nav="explorer"]:hover,
+[data-mobile-nav="delete-session"]:hover:not(:disabled) {
   background: var(--dsw-alias-interactive-bg-hover, rgba(0, 0, 0, .06));
 }
-[data-mobile-nav="session-log"]:disabled {
+/* The delete action reads destructive: its accent only appears on hover. */
+[data-mobile-nav="delete-session"]:hover:not(:disabled) {
+  border-color: var(--dsw-alias-state-error-primary, rgba(220, 38, 38, .5));
+  color: var(--dsw-alias-state-error-primary, #b91c1c);
+  background: var(--dsw-alias-interactive-bg-hover-danger, rgba(220, 38, 38, .08));
+}
+[data-mobile-nav="session-log"]:disabled,
+[data-mobile-nav="delete-session"]:disabled {
   color: var(--dsw-alias-label-dimmed, rgba(0, 0, 0, .35));
   cursor: default;
+}
+
+/* Inline delete confirmation: replaces the delete pill until confirmed or
+   cancelled. Danger-tinted card with a description and two actions. */
+[data-mobile-nav="delete-confirm"] {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  border: 1px solid var(--dsw-alias-state-error-secondary, rgba(220, 38, 38, .35));
+  border-radius: 12px;
+  background: var(--dsw-alias-interactive-bg-hover-danger, rgba(220, 38, 38, .06));
+}
+[data-mobile-nav="delete-confirm-title"] {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 18px;
+  color: var(--dsw-alias-state-error-primary, #b91c1c);
+}
+[data-mobile-nav="delete-confirm-desc"] {
+  font-size: 12px;
+  line-height: 17px;
+  color: var(--dsw-alias-label-secondary, inherit);
+}
+[data-mobile-nav="delete-confirm-actions"] {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 2px;
+}
+[data-mobile-nav="delete-confirm-actions"] > button {
+  height: 30px;
+  padding: 0 12px;
+  border: 1px solid var(--dsw-alias-border-l1, rgba(0, 0, 0, .12));
+  border-radius: 10px;
+  background: transparent;
+  color: var(--dsw-alias-label-primary, inherit);
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 20px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+[data-mobile-nav="delete-confirm-yes"] {
+  border-color: var(--dsw-alias-state-error-secondary, rgba(220, 38, 38, .5)) !important;
+  background: var(--dsw-alias-state-error-primary, #dc2626) !important;
+  color: #ffffff !important;
+}
+[data-mobile-nav="delete-confirm-actions"] > button:disabled {
+  opacity: .55;
+  cursor: default;
+}
+[data-mobile-nav="delete-error"] {
+  width: 100%;
+  font-size: 12px;
+  line-height: 17px;
+  color: var(--dsw-alias-state-error-primary, #b91c1c);
 }
 
 /* Floating fallback button (hero / blank phases without a session header).
