@@ -38,8 +38,7 @@ export const BASE_CSS = `
   gap: 8px;
 }
 [data-mobile-nav="session-log"],
-[data-mobile-nav="explorer"],
-[data-mobile-nav="delete-session"] {
+[data-mobile-nav="explorer"] {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -57,24 +56,17 @@ export const BASE_CSS = `
   -webkit-tap-highlight-color: transparent;
 }
 [data-mobile-nav="session-log"]:hover:not(:disabled),
-[data-mobile-nav="explorer"]:hover,
-[data-mobile-nav="delete-session"]:hover:not(:disabled) {
+[data-mobile-nav="explorer"]:hover {
   background: var(--dsw-alias-interactive-bg-hover, rgba(0, 0, 0, .06));
 }
-/* The delete action reads destructive: its accent only appears on hover. */
-[data-mobile-nav="delete-session"]:hover:not(:disabled) {
-  border-color: var(--dsw-alias-state-error-primary, rgba(220, 38, 38, .5));
-  color: var(--dsw-alias-state-error-primary, #b91c1c);
-  background: var(--dsw-alias-interactive-bg-hover-danger, rgba(220, 38, 38, .08));
-}
-[data-mobile-nav="session-log"]:disabled,
-[data-mobile-nav="delete-session"]:disabled {
+[data-mobile-nav="session-log"]:disabled {
   color: var(--dsw-alias-label-dimmed, rgba(0, 0, 0, .35));
   cursor: default;
 }
 
-/* Inline delete confirmation: replaces the delete pill until confirmed or
-   cancelled. Danger-tinted card with a description and two actions. */
+/* Session-delete confirm / error cards (shown as a bottom overlay, see the
+   delete-dialog wrapper below). Danger-tinted card with a description and
+   two actions. */
 [data-mobile-nav="delete-confirm"] {
   display: flex;
   flex-direction: column;
@@ -130,6 +122,39 @@ export const BASE_CSS = `
   font-size: 12px;
   line-height: 17px;
   color: var(--dsw-alias-state-error-primary, #b91c1c);
+}
+
+/* Bottom overlay for the delete confirm / error card: dimmed backdrop plus a
+   viewport-anchored card above the drawer. [hidden] keeps the error line out
+   of layout until a failure lands. */
+[data-mobile-nav="delete-dialog-backdrop"] {
+  position: fixed;
+  inset: 0;
+  z-index: 55;
+  background: rgba(0, 0, 0, .45);
+  animation: dsh-mobile-nav-fade .2s var(--ds-ease-in-out, ease-in-out);
+}
+[data-mobile-nav="delete-dialog"] {
+  position: fixed;
+  left: 8px;
+  right: 8px;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 16px);
+  z-index: 56;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 14px;
+  background: var(--dsw-alias-bg-base, #ffffff);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, .22);
+  animation: dsh-mobile-nav-sheet-in .22s var(--ds-ease-out, ease-in-out);
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-mobile-nav="delete-dialog-backdrop"],
+  [data-mobile-nav="delete-dialog"] {
+    animation: none !important;
+  }
 }
 
 /* Floating fallback button (hero / blank phases without a session header).

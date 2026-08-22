@@ -16,13 +16,14 @@
  *   every workspace account. The session-query index prunes vanished
  *   sessions on its own reconciliation; the browser half refreshes its list.
  *
- * Safety boundary: a session with a LIVE host agent — one resumed this
- * process, i.e. chatted with (or model-switched) since the last host
- * restart — cannot be torn down through any public API, so deletion refuses
- * it with `session-active` rather than unlink the log under an attached
- * writer. Sessions that are merely persisted (blank chats, or old chats
- * merely opened this boot — `session.history` never resumes an agent) are
- * deletable.
+ * USED (live) sessions are deletable too: the host stops the session's agent
+ * with a `disposed` cancel (public `Agent.cancel` / `Agent.whenIdle`), flushes
+ * the durable checkpoint (`SessionStore.flush`), and then unregisters the live
+ * session entry — and its agent — so the host stops listing the session
+ * (there is no public teardown API; the runtime-visible store internals used
+ * here mirror the agent-loop disposal sequence minus the scoped-world unwind,
+ * and are optional-chained so a harness shape change degrades to a clear
+ * error instead of a crash).
  *
  * Attachment bytes are content-addressed in a shared backend and are NOT
  * removed; they only become unreachable garbage once no log references them.
@@ -33,12 +34,16 @@ import type { Context } from '@deepseek-ai/cordis'
 import type { SessionHeader, SessionId } from '@deepseek-ai/dsh-session'
 // Type-only augmentation pulls: each package merges its service onto the
 // cordis Context (webServer / sessionPersistence / workspaceRegistry /
-// sessions); nothing else is imported from them.
+// sessions / agents); nothing else is imported from them.
 import type {} from '@deepseek-ai/dsh-host-webserver'
 import type {} from '@deepseek-ai/dsh-session-persistence'
 import type {} from '@deepseek-ai/dsh-workspace'
+import type {} from '@deepseek-ai/dsh-agent'
 
 export const name = 'dsh-mobile-nav'
+
+/** How long to wait for a live agent to converge to idle before refusing. */
+const IDLE_TIMEOUT_MS = 20_000
 
 /** Wire contract of the session-delete endpoint. */
 interface DeleteSessionBody {
@@ -59,6 +64,17 @@ function readBody(req: IncomingMessage): Promise<string> {
 /** Find one session header by id. */
 function findHeader(headers: readonly SessionHeader[], id: string): SessionHeader | undefined {
   return headers.find(candidate => candidate.id === id)
+}
+
+/** Bound a promise with a rejection deadline so a stuck agent never hangs the endpoint. */
+function withTimeout<T>(promise: Promise<T>, ms: number, message: string): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error(message)), ms)
+    promise.then(
+      (value) => { clearTimeout(timer); resolve(value) },
+      (error) => { clearTimeout(timer); reject(error) },
+    )
+  })
 }
 
 /** Write one JSON response with a fixed content type. */
@@ -134,15 +150,47 @@ export function apply(ctx: Context): void {
           return
         }
         const sessions = ctx.get('sessions')
-        if (sessions?.get(sessionId as SessionId) !== undefined) {
-          respond(res, 409, {
-            error: {
-              code: 'session-active',
-              message: `cannot delete session '${sessionId}': it is live (used since the host started); ` +
-                'restart the host or wait until the session is idle, then delete it again',
-            },
-          })
-          return
+        const live = sessions?.get(sessionId as SessionId)
+        if (live !== undefined && sessions !== undefined) {
+          // Used (live) sessions are deletable: stop the driver, wait for
+          // quiescence, flush the durable checkpoint, then unregister the
+          // live entries so the host stops listing the session. Without the
+          // unregister step the session would survive deletion inside
+          // `ctx.sessions` and keep appearing in `session.list`.
+          try {
+            const agents = ctx.get('agents')
+            const agent = agents?.get(sessionId as SessionId)
+            if (agent !== undefined) {
+              agent.cancel({ kind: 'disposed' })
+              await withTimeout(
+                agent.whenIdle(),
+                IDLE_TIMEOUT_MS,
+                `agent for session '${sessionId}' did not converge to idle within ${IDLE_TIMEOUT_MS}ms`,
+              )
+            }
+            await sessions.flush(live)
+            // Runtime-visible store internals (no public teardown API exists):
+            // mirror the agent-loop disposal order — agent first, then session.
+            const agentRegistry = agents as unknown as
+              | { store?: Map<SessionId, unknown>; detachEntered?: (entry: unknown) => void }
+              | undefined
+            const agentEntry = agentRegistry?.store?.get(sessionId as SessionId)
+            if (agentEntry !== undefined) agentRegistry?.detachEntered?.(agentEntry)
+            const sessionStore = sessions as unknown as
+              | { store?: Map<SessionId, { detach?: () => void }> }
+              | undefined
+            sessionStore?.store?.get(sessionId as SessionId)?.detach?.()
+          } catch (error) {
+            ctx.logger.warn(`dsh-mobile-nav: failed to stop live session '${sessionId}': ${String(error)}`)
+            respond(res, 409, {
+              error: {
+                code: 'session-busy',
+                message: `cannot delete session '${sessionId}': it is running and could not be stopped: ` +
+                  `${error instanceof Error ? error.message : String(error)}`,
+              },
+            })
+            return
+          }
         }
         const located = persistence.locate(header)
         if (located === undefined || located.kind !== 'jsonl') {

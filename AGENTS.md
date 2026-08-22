@@ -7,7 +7,7 @@
 - No monorepo, no application server, no workspace layer.
 - Real entrypoints:
   - `cordis.patch.yml` inserts the single host plugin row.
-  - `src/index.ts` is the host half: minimal, but it owns the session-delete route (`POST /api/mobile-nav.session.delete`, registered once `webServer` exists) that the browser half's drawer footer calls. See "Session delete" below.
+  - `src/index.ts` is the host half: minimal, but it owns the session-delete route (`POST /api/mobile-nav.session.delete`, registered once `webServer` exists) that the browser half's session-row menu calls. See "Session delete" below.
   - `package.json` exposes `./client` and declares `dsh.client.platform: "web"`; DSH discovers the browser half from `src/client/index.tsx`.
 - Key layout:
   - `src/client/` — browser half (components, effects, styles, locales, debug).
@@ -53,7 +53,7 @@ dsh web
 - Host/client split is load-bearing. All browser behavior lives in `src/client/`; the host half is minimal — it only owns the session-delete route (see "Session delete" below).
 - `src/client/index.tsx` injects `['slots', 'layout', 'locale', 'sessionLogDownload', 'sessions']`. Its `apply()` registers locale dictionaries, injects one `<style data-plugin>` tag, installs effects, and registers exactly two slots:
   - `conversation.session.header.actions` → `MobileNavToggle` (`order: 10`): drawer toggle + Files button.
-  - `sidebar.footer.action` → `MobileDrawerFooter` (`order: 5`): Files + session-log + delete-session actions. Order 5 keeps them below the remote icon row (order default 0) and above usage badges (order 10). Do not tie with usage stats.
+  - `sidebar.footer.action` → `MobileDrawerFooter` (`order: 5`): Files + session-log actions. Order 5 keeps them below the remote icon row (order default 0) and above usage badges (order 10). Do not tie with usage stats.
   - There is **no settings slot** anymore; the haptic feedback feature was removed.
 - Shared full-tree reconciler:
   - `src/client/effects/reconciler-core.ts` is a DOM-free engine with **zero imports**. It owns task registry, dirty-key routing (`scopes`), coalesced rAF flush scheduling, and per-task error isolation.
@@ -72,11 +72,13 @@ dsh web
 
 DSH has NO session-delete API (the session menu only offers rename / fork / archive; `workspace.archiveSession` only hides a row). The plugin provides deletion end to end:
 
-- Host half (`src/index.ts`) registers `POST /api/mobile-nav.session.delete` (`{ sessionId }` → `{ ok, deleted }` or `{ error: { code, message } }`) once `webServer` exists (`ctx.inject`). It refuses live sessions (`sessions.get(id)` present ⇒ an agent is attached) with `session-active`; resolves the header via `sessionPersistence.list()`; removes the JSONL artifact via `sessionPersistence.locate(header)` + `rm`; then `detachSession`s the id from every `workspaceRegistry` workspace. The session-query index prunes vanished sessions itself.
-- Browser half (`MobileDrawerFooter`, `data-mobile-nav="delete-session"`) targets the CURRENT session with an inline confirm (`delete-confirm`); on success it `clear()`s the selection when the deleted id was current, repulls the baseline, and closes the drawer. Errors map codes to locale copy (`deleteErrorSessionActive` / `deleteErrorNotFound` / `deleteErrorGeneric`).
+- Host half (`src/index.ts`) registers `POST /api/mobile-nav.session.delete` (`{ sessionId }` → `{ ok, deleted }` or `{ error: { code, message } }`) once `webServer` exists (`ctx.inject`). It resolves the header via `sessionPersistence.list()`; removes the JSONL artifact via `sessionPersistence.locate(header)` + `rm`; then `detachSession`s the id from every `workspaceRegistry` workspace. The session-query index prunes vanished sessions itself.
+- USED (live) sessions are deletable too: the host stops the agent with `agent.cancel({ kind: 'disposed' })` + a bounded `agent.whenIdle()` (`session-busy` on timeout), flushes the durable checkpoint (`sessions.flush`), then unregisters the live session entry — and its agent — through the runtime-visible store internals (`store.get(id).detach()` / `detachEntered(entry)`, optional-chained: there is no public teardown API; without the unregister the deleted session would keep appearing in `session.list`). New peer: `@deepseek-ai/dsh-agent`.
+- Browser half (`src/client/effects/session-menu.ts`, mobile-only via `installMobileEffect`) injects a red "delete session" item into each session row's ⋯ menu by cloning the host's own item markup (idempotent `data-mobile-nav="session-delete"` marker, re-injected when React recreates the menu), detects session menus by their rename/fork/archive labels from the `workspace` locale namespace, pairs the menu with its row via a capture-phase ⋯-click listener, and resolves the session id from the client list by `displayTitle` (duplicate titles tiebreak by DOM position within `[class*="_groupSection"]`). Delete shows a bottom confirm card (`data-mobile-nav="delete-dialog"`, `aria-modal`, Escape/backdrop cancel); on success it `clear()`s the selection when the deleted id was current, repulls the baseline, and closes the drawer. Error codes map to `deleteErrorBusy` / `deleteErrorNotFound` / `deleteErrorResolve` / `deleteErrorGeneric`.
 - `ctx.sessions.refresh()` is NOT on the rc.6 `ISessions` face; probe the concrete service (`'refresh' in ctx.sessions`) before calling.
-- `lib/` and the peer set change together: the host half types against `@deepseek-ai/dsh-host-webserver`, `dsh-session-persistence`, `dsh-workspace`, `dsh-session` (Context augmentations pulled via type-only imports in `src/index.ts`). Keep those peers in `package.json` when editing the host half.
+- `lib/` and the peer set change together: the host half types against `@deepseek-ai/dsh-host-webserver`, `dsh-session-persistence`, `dsh-workspace`, `dsh-session`, `dsh-agent` (Context augmentations pulled via type-only imports in `src/index.ts`). Keep those peers in `package.json` when editing the host half.
 - Only JSONL-backend sessions are deletable; any other persistence backend returns `unsupported-persistence-backend` instead of pretending.
+- `effects/` 禁 `../` import applies here too: `session-menu.ts` mirrors `NS = 'mobileNav'` locally and reaches the host browser labels through `ctx.locale.bind('workspace')` with the general overload.
 
 ## Conventions
 
@@ -111,7 +113,7 @@ DSH has NO session-delete API (the session menu only offers rename / fork / arch
 - Automated gates: `pnpm verify` (typecheck) and `pnpm test:core` (reconciler-core unit tests). `pnpm build` additionally exercises the custom client bundler. Use `git diff --check` for whitespace hygiene.
 - There is no linter, formatter, coverage setup, or CI workflow.
 - After source/layout changes, install the linked plugin in a real DSH Web profile, restart `dsh web`, and check both sides of the breakpoint:
-  - **Narrow phone (~390px):** rail hidden; drawer/FAB/backdrop open and close; Escape; session-row action menus do not close the drawer; settings remains usable; Files opens explorer/preview sheets; session-log/footer actions work; delete-session confirm flow works (idle session deletes and the row disappears; a live session shows the `session-active` error); preview fullscreen opens and resets.
+  - **Narrow phone (~390px):** rail hidden; drawer/FAB/backdrop open and close; Escape; session-row action menus do not close the drawer; settings remains usable; Files opens explorer/preview sheets; session-log/footer actions work; the session row ⋯ menu shows four items (rename / fork / archive / red delete) and the delete confirm flow works (idle or used session deletes and the row disappears; a stuck session shows the `session-busy` error); preview fullscreen opens and resets.
   - **Tablet (768–1023px):** verify the intended centered and width-constrained sheet geometry separately from phone behavior.
   - **Desktop (≥1024px):** compare with the plugin disabled; there must be no layout or interaction change.
 - For phone-side debugging, add `?mobile-nav-debug=1` to display live viewport, frame/marker, floating-panel, and captured-JavaScript-error state. The optional `pnpm smoke:cdp` is a targeted smoke probe, not a replacement for real-profile checks.

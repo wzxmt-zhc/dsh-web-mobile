@@ -5,6 +5,7 @@ import { MOBILE_CSS } from './styles/index.ts'
 import { installDebugBadge } from './debug.ts'
 import { installFrameController, installOverlayInteractions, installPhoneChrome, installReconciler, registerReconcileTasks } from './effects/phone-chrome.ts'
 import { installAionuiCompat } from './effects/aionui-compat.ts'
+import { installSessionMenuDelete } from './effects/session-menu.ts'
 import { NS, en, zh } from './locales.ts'
 import type { MobileNavKey } from './locales.ts'
 
@@ -135,6 +136,10 @@ export function apply(ctx: ClientContext): void {
   // Drawer close interactions: Escape and navigation taps inside the drawer.
   installOverlayInteractions(ctx)
 
+  // Session deletion, injected into each session row's ⋯ menu (beside
+  // rename / fork / archive) with a confirm dialog. Mobile-only.
+  installSessionMenuDelete(ctx)
+
   installPhoneChrome(ctx)
 
   installAionuiCompat(ctx)
@@ -166,18 +171,10 @@ export function apply(ctx: ClientContext): void {
     id: 'mobile-nav-session-log',
     order: 5,
     locale: NS,
-    inject: () => {
-      // `ctx.sessions.refresh()` repulls the session baseline; rc.6 keeps it
-      // off the ISessions face (wire-pump internals), so probe the concrete
-      // service — every version this plugin supports carries it.
-      const refresh = (ctx.sessions as { refresh?: () => Promise<void> }).refresh
-      return {
-        downloadSessionLog: (sessionId: string) => ctx.sessionLogDownload.download(sessionId),
-        toggleSidebar: () => ctx.layout.toggleSidebar(),
-        refreshSessions: () => (refresh === undefined ? Promise.resolve() : refresh()),
-        clearSessions: () => ctx.sessions.clear(),
-      }
-    },
+    inject: () => ({
+      downloadSessionLog: (sessionId: string) => ctx.sessionLogDownload.download(sessionId),
+      toggleSidebar: () => ctx.layout.toggleSidebar(),
+    }),
   }, MobileDrawerFooter))
 }
 

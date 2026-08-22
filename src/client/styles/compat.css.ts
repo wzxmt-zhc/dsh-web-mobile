@@ -388,8 +388,8 @@ export const COMPAT_CSS = `@media (max-width: 1023px) {
   }
 
   /* ---------- dsh-web-ui polish: drawer footer ----------
-     The injected footer actions (Files + Session log + Delete session)
-     become equal pill buttons instead of text-width capsules. */
+     The injected footer actions (Files + Session log) become two equal pill
+     buttons instead of text-width capsules. */
 
   /* The official footerActions row also hosts the remote-web-ui entry
      row (two icon buttons); without wrapping the two groups squeeze each
@@ -401,24 +401,10 @@ export const COMPAT_CSS = `@media (max-width: 1023px) {
   [data-mobile-nav="drawer-actions"] {
     width: 100% !important;
   }
-  /* Two pills per row (Files + Session log, then Delete session full-width
-     below): three nowrap pills on ONE line exceed the drawer's
-     max-content/92vw width on narrow phones and the rightmost pill gets
-     clipped. A 50%-minus-gap flex-basis guarantees every pill fits the
-     drawer and wraps to a second row instead of overflowing. */
   [data-mobile-nav="drawer-actions"] > button {
-    flex: 1 1 calc(50% - 4px) !important;
-    min-width: 0 !important;
+    flex: 1 1 0 !important;
     padding: 0 8px !important;
     white-space: nowrap !important;
-  }
-  /* Ellipsis safety net for very narrow drawers (≤ ~320px): the label
-     shrinks instead of pushing the pill past the drawer edge. */
-  [data-mobile-nav="drawer-actions"] > button > span {
-    flex: 0 1 auto !important;
-    min-width: 0 !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
   }
 
   /* ---------- dsh-web-ui polish: floating pet ----------
