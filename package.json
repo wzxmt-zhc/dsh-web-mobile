@@ -1,6 +1,6 @@
 {
   "name": "@dsh-external/dsh-mobile-nav",
-  "version": "2.3.0",
+  "version": "2.4.0",
   "description": "尽可能的使dsh适配竖屏等移动端设备",
   "type": "module",
   "main": "lib/index.js",
