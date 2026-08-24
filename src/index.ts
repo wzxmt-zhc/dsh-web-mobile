@@ -32,6 +32,7 @@ import { rm } from 'node:fs/promises'
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import type { Context } from '@deepseek-ai/cordis'
 import type { SessionHeader, SessionId } from '@deepseek-ai/dsh-session'
+import { installResponseCompression } from './compress'
 // Type-only augmentation pulls: each package merges its service onto the
 // cordis Context (webServer / sessionPersistence / workspaceRegistry /
 // sessions / agents); nothing else is imported from them.
@@ -95,6 +96,11 @@ function respond(res: ServerResponse, status: number, body: unknown): void {
  * @param ctx - Host plugin context.
  */
 export function apply(ctx: Context): void {
+  // Transparent gzip/brotli for large JSON responses (long-session history
+  // is megabytes on a phone). Patches http.ServerResponse.prototype; the
+  // disposer restores it on plugin unload/reload.
+  ctx.effect(() => installResponseCompression(), 'dsh-mobile-nav: response compression')
+
   ctx.inject(['webServer'], (webCtx) => {
     webCtx.effect(() => webCtx.webServer.register({
       kind: 'exact',

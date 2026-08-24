@@ -68,6 +68,28 @@ dsh web
 - Styles: `src/client/styles/index.ts` concatenates `base → layout → compat → misc` in that load-bearing order and injects one `<style data-plugin="@dsh-external/dsh-mobile-nav">`. Mobile rules target `(max-width: 1023px)`; desktop rules hide mobile controls and must preserve the uninstalled layout.
 - Third-party compatibility is implemented through scoped DOM markers, stable `data-*` attributes, `MutationObserver`, and carefully scoped class/text anchors. Never modify third-party source packages.
 
+## Response compression
+
+Long sessions make `session.history` responses megabytes of JSON (17MB+ is
+slow on a phone). `src/compress.ts` (host half, installed first in `apply`)
+patches `http.ServerResponse.prototype` for transparent gzip/brotli:
+
+- Client `Accept-Encoding` picks the codec: `br` (brotli, quality 6) preferred,
+  `gzip` fallback. Only JSON `content-type` responses of ≥4KB are compressed;
+  small JSON and every other type (HTML/static/ZIP/SSE) pass through
+  byte-identical. `Vary: Accept-Encoding` is added only when compressed.
+- The patch defers `writeHead` for deferrable JSON until `end()` so the
+  compress-vs-pass decision is made on the real body size and `Content-Length`
+  always matches; `write`/`end` buffer while deferred. Non-deferrable
+  responses call the original methods immediately and are never touched.
+- Wrappers must keep the receiver (`origWriteHead.apply(this, …)`) — calling
+  the extracted reference throws `this._header` of undefined (same class of
+  bug as the refresh ghost row). The disposer restores the prototype methods.
+- Browsers decompress transparently (Node's undici `fetch` ALSO auto-decompresses —
+  verify compression with a raw `node:http` request, not fetch, to avoid
+  double-decompression artifacts). Requires a `dsh web` RESTART to load the
+  host-half change.
+
 ## Session delete
 
 DSH has NO session-delete API (the session menu only offers rename / fork / archive; `workspace.archiveSession` only hides a row). The plugin provides deletion end to end:
