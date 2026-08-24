@@ -4,6 +4,7 @@ import { MobileDrawerFooter } from './components/MobileDrawerFooter.tsx'
 import { MOBILE_CSS } from './styles/index.ts'
 
 import { installFrameController, installOverlayInteractions, installPhoneChrome, installReconciler, registerReconcileTasks } from './effects/phone-chrome.ts'
+import { installSubagentChipTouch } from './effects/subagent-chip-touch.ts'
 import { installAionuiCompat } from './effects/aionui-compat.ts'
 import { installSessionMenuDelete } from './effects/session-menu.ts'
 import { NS, en, zh } from './i18n/locales.ts'
@@ -152,6 +153,10 @@ export function apply(ctx: ClientContext): void {
   // Session deletion, injected into each session row's ⋯ menu (beside
   // rename / fork / archive) with a confirm dialog. Mobile-only.
   installSessionMenuDelete(ctx)
+
+  // Lineage-count chip: reliable open/close on touch pointers (upstream is
+  // hover-timer driven and has no onClick on the count variant).
+  installSubagentChipTouch(ctx)
 
   installPhoneChrome(ctx)
 

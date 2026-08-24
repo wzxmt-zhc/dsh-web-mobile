@@ -8,8 +8,8 @@ export function createSettingsToolbarTask(): ReconcilerTask {
     ensure: () => {
       const dialog = document.querySelector('[aria-modal="true"]')
       if (dialog === null) return
-      const nav = dialog.querySelector(':scope > [class$="_nav"]')
-      const header = dialog.querySelector('[class$="_header"]')
+      const nav = dialog.querySelector(':scope > [class*="_nav"]')
+      const header = dialog.querySelector('[class*="_header"]:not([class*="_headerActions"])')
       if (nav === null || header === null) return
       if (header.parentElement === nav) return
       // The dialog DOM can be rebuilt by React between mutations: refresh
@@ -22,7 +22,7 @@ export function createSettingsToolbarTask(): ReconcilerTask {
     },
     dispose: () => {
       if (origin === null) return
-      const header = document.querySelector('[aria-modal="true"] [class$="_header"]')
+      const header = document.querySelector('[aria-modal="true"] [class*="_header"]:not([class*="_headerActions"])')
       if (header !== null && origin.parent.isConnected) {
         origin.parent.insertBefore(header, origin.next)
       }

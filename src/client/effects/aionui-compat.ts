@@ -45,7 +45,7 @@ export function installAionuiCompat(ctx: ClientContext): void {
     const onCollapse = (event: MouseEvent) => {
       const target = event.target as HTMLElement | null
       if (target === null) return
-      if (target.closest('[data-aionui-preview-col] [class$="_panelCollapse"]') !== null) {
+      if (target.closest('[data-aionui-preview-col] [class*="_panelCollapse"]') !== null) {
         closePreview()
       }
     }

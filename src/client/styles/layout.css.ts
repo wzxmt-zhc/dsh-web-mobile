@@ -95,21 +95,21 @@ export const LAYOUT_CSS = `/* ---------- mobile-only layout ---------- */
      phone-sized viewport, shifting the column further. Mobile scrolling
      is touch/wheel, so remove the scrollbar entirely on phones: the
      column is then exactly centered in every browser. */
-  [data-phase] [class$="_scrollBody"] {
+  [data-phase] [class*="_scrollBody"] {
     scrollbar-gutter: auto !important;
     scrollbar-width: none;
   }
-  [data-phase] [class$="_scrollBody"]::-webkit-scrollbar {
+  [data-phase] [class*="_scrollBody"]::-webkit-scrollbar {
     display: none !important;
     width: 0;
     height: 0;
   }
   /* Message action rows (copy / run-time badges) can overflow the right
      edge on narrow screens — keep them inside the message width. */
-  [data-phase] [class$="_actions"] {
+  [data-phase] [class*="_actions"] {
     overflow: hidden;
   }
-  [data-phase] [class$="_actions"] [class$="_timeEnd"] {
+  [data-phase] [class*="_actions"] [class*="_timeEnd"] {
     flex: 0 1 auto;
     min-width: 0;
     overflow: hidden;
@@ -117,7 +117,7 @@ export const LAYOUT_CSS = `/* ---------- mobile-only layout ---------- */
     white-space: nowrap !important;
   }
 
-  [data-phase] [class$="_scroll"]:has(p) {
+  [data-phase] [class*="_scroll"]:not([class*="_scrollBody"]):has(p) {
     padding-left: 20px;
     padding-right: 20px;
     font-size: 15px !important;
@@ -126,9 +126,9 @@ export const LAYOUT_CSS = `/* ---------- mobile-only layout ---------- */
      list items, so the container's inherited 15px is not enough. User
      messages render their text in a div whose class carries _text_
      (16px too) — cover it as well. */
-  [data-phase] [class$="_scroll"]:has(p) p,
-  [data-phase] [class$="_scroll"]:has(p) li,
-  [data-phase] [class$="_scroll"]:has(p) [class*="_text_"] {
+  [data-phase] [class*="_scroll"]:not([class*="_scrollBody"]):has(p) p,
+  [data-phase] [class*="_scroll"]:not([class*="_scrollBody"]):has(p) li,
+  [data-phase] [class*="_scroll"]:not([class*="_scrollBody"]):has(p) [class*="_text_"] {
     font-size: 15px !important;
   }
 
@@ -150,8 +150,8 @@ export const LAYOUT_CSS = `/* ---------- mobile-only layout ---------- */
      phone leaves a large blank strip on the left and pushes the bubble high.
      On mobile let the user message fill the same full width as assistant
      messages (the bubble background then spans the whole message column). */
-  [data-phase] [class$="_userStack"],
-  [data-phase] [class$="_userStack"] [class$="_bubble"] {
+  [data-phase] [class*="_userStack"],
+  [data-phase] [class*="_userStack"] [class*="_bubble"] {
     box-sizing: border-box;
     width: fit-content;
     max-width: 100%;
@@ -164,7 +164,7 @@ export const LAYOUT_CSS = `/* ---------- mobile-only layout ---------- */
      model selector on narrow phones. Keep fixed hit targets fixed, but let
      text-bearing controls shrink and ellipsize before they paint over the
      trailing lane. */
-  [data-phase] [class*="_card"]:has(textarea) [class$="_row"]:has([class$="_trailing"]) {
+  [data-phase] [class*="_card"]:has(textarea) [class*="_row"]:has([class*="_trailing"]) {
     box-sizing: border-box;
     container-type: inline-size;
     container-name: dsh-mobile-composer;
@@ -177,7 +177,7 @@ export const LAYOUT_CSS = `/* ---------- mobile-only layout ---------- */
        overflow clipping, so the row itself can stay visible. */
     overflow: visible;
   }
-  [data-phase] [class*="_card"]:has(textarea) [class$="_row"]:has([class$="_trailing"]) > :first-child {
+  [data-phase] [class*="_card"]:has(textarea) [class*="_row"]:has([class*="_trailing"]) > :first-child {
     flex: 0 1 auto;
     min-width: 0;
     gap: 6px;
@@ -186,7 +186,7 @@ export const LAYOUT_CSS = `/* ---------- mobile-only layout ---------- */
        ellipsis is handled by the trigger label itself. */
     overflow: visible;
   }
-  [data-phase] [class*="_card"]:has(textarea) [class$="_row"]:has([class$="_trailing"]) > [class$="_trailing"] {
+  [data-phase] [class*="_card"]:has(textarea) [class*="_row"]:has([class*="_trailing"]) > [class*="_trailing"] {
     flex: 1 1 auto;
     min-width: 0;
     gap: 6px;
@@ -196,7 +196,7 @@ export const LAYOUT_CSS = `/* ---------- mobile-only layout ---------- */
   /* PermissionSelect / plan controls share the tools lane. Let the
      permission label use the remaining tools width, while the lower-priority
      plan slot keeps an icon-sized target instead of stealing model width. */
-  [data-phase] [class*="_card"]:has(textarea) [class$="_row"]:has([class$="_trailing"]) > :first-child > :nth-child(2) {
+  [data-phase] [class*="_card"]:has(textarea) [class*="_row"]:has([class*="_trailing"]) > :first-child > :nth-child(2) {
     flex: 0 1 auto;
     min-width: 0;
     max-width: none;
@@ -205,14 +205,14 @@ export const LAYOUT_CSS = `/* ---------- mobile-only layout ---------- */
        overflow hidden crops it. The trigger label clips its own text. */
     overflow: visible;
   }
-  [data-phase] [class*="_card"]:has(textarea) [class$="_row"]:has([class$="_trailing"]) > :first-child > :nth-child(2) > [class$="_trigger"] {
+  [data-phase] [class*="_card"]:has(textarea) [class*="_row"]:has([class*="_trailing"]) > :first-child > :nth-child(2) > [class*="_trigger"] {
     flex: 1 1 auto;
     min-width: 28px;
     max-width: 100%;
     display: flex !important;
     overflow: hidden;
   }
-  [data-phase] [class*="_card"]:has(textarea) [class$="_row"]:has([class$="_trailing"]) > :first-child > :nth-child(2) > [class$="_trigger"] > [class$="_triggerLabel"] {
+  [data-phase] [class*="_card"]:has(textarea) [class*="_row"]:has([class*="_trailing"]) > :first-child > :nth-child(2) > [class*="_trigger"] > [class*="_triggerLabel"] {
     flex: 1 1 auto;
     min-width: 0;
     overflow: hidden;
@@ -223,57 +223,57 @@ export const LAYOUT_CSS = `/* ---------- mobile-only layout ---------- */
      not force them into an icon-sized box: their child button would overflow
      that wrapper and paint over PermissionSelect. Keep the wrapper intrinsic;
      the model lane below is the one that sacrifices width. */
-  [data-phase] [class*="_card"]:has(textarea) [class$="_row"]:has([class$="_trailing"]) > :first-child > :nth-child(2) > :not([class$="_trigger"]) {
+  [data-phase] [class*="_card"]:has(textarea) [class*="_row"]:has([class*="_trailing"]) > :first-child > :nth-child(2) > :not([class*="_trigger"]) {
     flex: 0 1 auto;
     min-width: 34px;
     max-width: max-content;
     overflow: visible;
   }
-  [data-phase] [class*="_card"]:has(textarea) [class$="_row"]:has([class$="_trailing"]) > :first-child > :nth-child(2) > [class$="_wrap"] > [class$="_chip"] {
+  [data-phase] [class*="_card"]:has(textarea) [class*="_row"]:has([class*="_trailing"]) > :first-child > :nth-child(2) > [class*="_wrap"] > [class*="_chip"] {
     max-width: 100%;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap !important;
   }
   @container dsh-mobile-composer (max-width: 359px) {
-    [data-phase] [class*="_card"]:has(textarea) [class$="_row"]:has([class$="_trailing"]) > :first-child > :nth-child(2) > [class$="_trigger"] > [class$="_triggerLabel"] {
+    [data-phase] [class*="_card"]:has(textarea) [class*="_row"]:has([class*="_trailing"]) > :first-child > :nth-child(2) > [class*="_trigger"] > [class*="_triggerLabel"] {
       display: none !important;
     }
   }
   /* Model selector: flexible and shrinkable, but never clipped.
      The root must be overflow:visible so the dropdown menu can render.
      The trigger itself clips the label text. */
-  [data-phase] [class*="_card"]:has(textarea) [class$="_root"]:has(> [class$="_trigger"][aria-haspopup="menu"]) {
+  [data-phase] [class*="_card"]:has(textarea) [class*="_root"]:has(> [class*="_trigger"][aria-haspopup="menu"]) {
     flex: 0 1 auto;
     min-width: 0;
     overflow: visible;
   }
   @container dsh-mobile-composer (max-width: 359px) {
-    [data-phase] [class*="_card"]:has(textarea) [class$="_root"]:has(> [class$="_trigger"][aria-haspopup="menu"]) {
+    [data-phase] [class*="_card"]:has(textarea) [class*="_root"]:has(> [class*="_trigger"][aria-haspopup="menu"]) {
       flex-basis: auto;
     }
   }
-  [data-phase] [class*="_card"]:has(textarea) [class$="_root"]:has(> [class$="_trigger"][aria-haspopup="menu"]) > [class$="_trigger"] {
+  [data-phase] [class*="_card"]:has(textarea) [class*="_root"]:has(> [class*="_trigger"][aria-haspopup="menu"]) > [class*="_trigger"] {
     display: flex !important;
     width: 100%;
     max-width: 100%;
     min-width: 0;
     overflow: hidden;
   }
-  [data-phase] [class*="_card"]:has(textarea) [class$="_root"]:has(> [class$="_trigger"][aria-haspopup="menu"]) > [class$="_trigger"] > [class$="_triggerLabel"] {
+  [data-phase] [class*="_card"]:has(textarea) [class*="_root"]:has(> [class*="_trigger"][aria-haspopup="menu"]) > [class*="_trigger"] > [class*="_triggerLabel"] {
     flex: 1 1 auto;
     min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap !important;
   }
-  [data-phase] [class*="_card"]:has(textarea) [class$="_root"]:has(> [class$="_trigger"]):not(:has(> [class$="_trigger"][aria-haspopup="menu"])) {
+  [data-phase] [class*="_card"]:has(textarea) [class*="_root"]:has(> [class*="_trigger"]):not(:has(> [class*="_trigger"][aria-haspopup="menu"])) {
     flex: 0 0 auto;
   }
 
   /* Model switcher menu: center the dropdown on the now-shrinkable trigger,
      but never let it exceed the viewport on narrow phones. */
-  [data-phase] [class*="_card"]:has(textarea) [class$="_root"]:has(> [class$="_trigger"]) > [class$="_menu"] {
+  [data-phase] [class*="_card"]:has(textarea) [class*="_root"]:has(> [class*="_trigger"]) > [class*="_menu"] {
     left: 50% !important;
     right: auto !important;
     transform: translateX(-50%) !important;
@@ -284,14 +284,39 @@ export const LAYOUT_CSS = `/* ---------- mobile-only layout ---------- */
   /* --- Fix composer row overflow at narrow widths (320px-360px) ---
      Force every direct child of the tools and trailing lanes to shrink,
      so they can fit within the available space without causing horizontal
-     overflow. */
-  [data-phase] [class*="_card"]:has(textarea) [class$="_row"]:has([class$="_trailing"]) > :first-child > * {
+     overflow. The fixed-size icon buttons are exempt: officially both are
+     flex:none at a fixed size (plus 28x28, send 34x34) and must stay put,
+     not participate in adaptation. */
+  [data-phase] [class*="_card"]:has(textarea) [class*="_row"]:has([class*="_trailing"]) > :first-child > :not([class*="_add"]) {
     flex-shrink: 1;
     min-width: 0;
   }
-  [data-phase] [class*="_card"]:has(textarea) [class$="_row"]:has([class$="_trailing"]) > [class$="_trailing"] > * {
+  [data-phase] [class*="_card"]:has(textarea) [class*="_row"]:has([class*="_trailing"]) > [class*="_trailing"] > :not([class*="_primary"]) {
     flex-shrink: 1;
     min-width: 0;
+  }
+  /* Pin the plus button at the left edge of the tools lane: official
+     flex:none 28x28, never squeezed by narrower viewports. */
+  [data-phase] [class*="_card"]:has(textarea) [class*="_row"]:has([class*="_trailing"]) > :first-child > [class*="_add"] {
+    flex: none;
+  }
+  /* The context meter in the trailing lane is another fixed-size icon
+     control: its trigger is officially width:28px flex:none, but the root
+     itself is shrinkable, so a squeezed root lets the trigger paint over
+     the pinned send button. Keep the whole meter at its natural size; it
+     has no aria-haspopup marker, so the model-selector rules do not apply. */
+  [data-phase] [class*="_card"]:has(textarea) [class*="_row"]:has([class*="_trailing"]) > [class*="_trailing"] > [class*="_root"] {
+    flex: none;
+    min-width: 0;
+  }
+  /* Pin the send button to the right edge of the trailing lane.
+     The lane is stretched (flex:1 1 auto) so leftover space would otherwise
+     pile up on its right and let the button drift as model/context labels
+     change size. margin-left:auto absorbs that free space, keeping the
+     button glued to the right edge at its official fixed 34x34 size. */
+  [data-phase] [class*="_card"]:has(textarea) [class*="_row"]:has([class*="_trailing"]) > [class*="_trailing"] > [class*="_primary"] {
+    flex: none;
+    margin-left: auto;
   }
 
   /* --- Session header on mobile ---
@@ -333,7 +358,7 @@ export const LAYOUT_CSS = `/* ---------- mobile-only layout ---------- */
     top: auto !important;
     z-index: auto !important;
   }
-  [data-mobile-nav="frame"] [data-phase] header [class$="_headerActions"] {
+  [data-mobile-nav="frame"] [data-phase] header [class*="_headerActions"] {
     display: flex !important;
     align-items: center;
     box-sizing: border-box;
@@ -346,7 +371,7 @@ export const LAYOUT_CSS = `/* ---------- mobile-only layout ---------- */
   }
   /* The title takes the remaining width and never paints outside it; the
      metadata lane's mode text is what shrinks first. */
-  [data-mobile-nav="frame"] [data-phase] header [class$="_crumbs"] {
+  [data-mobile-nav="frame"] [data-phase] header [class*="_crumbs"] {
     flex: 1 1 0;
     min-width: 0;
     max-width: none;
@@ -357,7 +382,7 @@ export const LAYOUT_CSS = `/* ---------- mobile-only layout ---------- */
   /* Mode label: preserve its icon and scale with the viewport — it yields
      space to the title and subagent status first, but can use more width on
      wider screens up to 220px before ellipsizing. */
-  [data-mobile-nav="frame"] [data-phase] header [class$="_label"]:has(> svg) {
+  [data-mobile-nav="frame"] [data-phase] header [class*="_label"]:has(> svg) {
     order: 1;
     flex: 0 1 auto;
     min-width: 0;
@@ -371,7 +396,7 @@ export const LAYOUT_CSS = `/* ---------- mobile-only layout ---------- */
     text-overflow: ellipsis;
     white-space: nowrap !important;
   }
-  [data-mobile-nav="frame"] [data-phase] header [class$="_label"]:has(> svg) > svg {
+  [data-mobile-nav="frame"] [data-phase] header [class*="_label"]:has(> svg) > svg {
     position: absolute !important;
     left: 0 !important;
     top: 50% !important;
@@ -380,11 +405,11 @@ export const LAYOUT_CSS = `/* ---------- mobile-only layout ---------- */
   /* Running/subagent controls keep their full status text and hit area; they
      do not give up width to the mode label. NOTE: the real subagent lineage
      root has class="ZKlsPq_root " — a TRAILING SPACE from the plugin's
-     template-literal className — so [class$="_root"] never matches it. Use
+     template-literal className — so [class*="_root"] never matches it. Use
      [class*="_root"] and exclude the switcher root ([class*="_switcherRoot"])
      so only the count/job roots get pinned (the switcher must stay shrinkable
      so its own title can ellipsize). */
-  [data-mobile-nav="frame"] [data-phase] header [class*="_root"]:not([class*="_switcherRoot"]):has(> button[class$="_trigger"]) {
+  [data-mobile-nav="frame"] [data-phase] header [class*="_root"]:not([class*="_switcherRoot"]):has(> button[class*="_trigger"]) {
     order: 2;
     flex: 0 0 auto;
     min-width: max-content;
@@ -392,8 +417,8 @@ export const LAYOUT_CSS = `/* ---------- mobile-only layout ---------- */
     white-space: nowrap !important;
     position: static;
   }
-  [data-mobile-nav="frame"] [data-phase] header [class*="_root"]:not([class*="_switcherRoot"]):has(> button[class$="_trigger"]) > button,
-  [data-mobile-nav="frame"] [data-phase] header [class*="_root"]:not([class*="_switcherRoot"]):has(> button[class$="_trigger"]) > button * {
+  [data-mobile-nav="frame"] [data-phase] header [class*="_root"]:not([class*="_switcherRoot"]):has(> button[class*="_trigger"]) > button,
+  [data-mobile-nav="frame"] [data-phase] header [class*="_root"]:not([class*="_switcherRoot"]):has(> button[class*="_trigger"]) > button * {
     white-space: nowrap !important;
   }
   /* The lineage count's leading "/" (ZKlsPq_separator — official desktop
@@ -401,7 +426,7 @@ export const LAYOUT_CSS = `/* ---------- mobile-only layout ---------- */
      stray extra breadcrumb level on small screens; hide it. The crumbSep "/"
      between ancestry segments (subagent sessions) is a real separator and
      stays. */
-  [data-mobile-nav="frame"] [data-phase] header [class$="_crumbs"] [class$="_separator"] {
+  [data-mobile-nav="frame"] [data-phase] header [class*="_crumbs"] [class*="_separator"] {
     display: none !important;
   }
   [data-mobile-nav="frame"] [data-phase] header [data-mobile-nav="files"] {
@@ -425,14 +450,14 @@ export const LAYOUT_CSS = `/* ---------- mobile-only layout ---------- */
      BOTH running and idle descendants, so we key the guards on that root
      rather than the transient running-state dot — otherwise the count gets
      clipped again the moment agents go idle. Match roots with
-     [class*="_root"] (the real class carries a trailing space; [class$="_root"]
+     [class*="_root"] (the real class carries a trailing space; [class*="_root"]
      matches nothing). */
   @media (max-width: 440px) {
-    [data-mobile-nav="frame"] [data-phase] header [class$="_crumbs"] {
+    [data-mobile-nav="frame"] [data-phase] header [class*="_crumbs"] {
       padding-right: 8px;
     }
-    [data-mobile-nav="frame"] [data-phase] header [class$="_headerActions"]:has([class*="_root"]) [class$="_label"]:has(> svg),
-    [data-mobile-nav="frame"] [data-phase] header:has([class$="_crumbs"] [class*="_root"]) [class$="_label"]:has(> svg) {
+    [data-mobile-nav="frame"] [data-phase] header [class*="_headerActions"]:has([class*="_root"]) [class*="_label"]:has(> svg),
+    [data-mobile-nav="frame"] [data-phase] header:has([class*="_crumbs"] [class*="_root"]) [class*="_label"]:has(> svg) {
       max-width: 18px;
       min-width: 18px;
       padding-left: 18px;
@@ -446,13 +471,13 @@ export const LAYOUT_CSS = `/* ---------- mobile-only layout ---------- */
      also hold a small right-hand gap — the subagent text should never sit
      flush against the mode component. */
   @media (max-width: 559px) {
-    [data-mobile-nav="frame"] [data-phase] header [class$="_crumbs"] {
+    [data-mobile-nav="frame"] [data-phase] header [class*="_crumbs"] {
       padding-right: 8px;
     }
-    [data-mobile-nav="frame"] [data-phase] header:has([class$="_crumbs"] [class*="_root"]) [class$="_headerActions"] [class*="_root"]:not([class*="_switcherRoot"]):has(> button[class$="_trigger"]) [class$="_count"] {
+    [data-mobile-nav="frame"] [data-phase] header:has([class*="_crumbs"] [class*="_root"]) [class*="_headerActions"] [class*="_root"]:not([class*="_switcherRoot"]):has(> button[class*="_trigger"]) [class*="_count"] {
       display: none !important;
     }
-    [data-mobile-nav="frame"] [data-phase] header:has([class$="_crumbs"] [class*="_root"]):has([class$="_headerActions"] [class*="_root"]) [class$="_label"]:has(> svg) {
+    [data-mobile-nav="frame"] [data-phase] header:has([class*="_crumbs"] [class*="_root"]):has([class*="_headerActions"] [class*="_root"]) [class*="_label"]:has(> svg) {
       max-width: 18px;
       min-width: 18px;
       padding-left: 18px;
@@ -460,7 +485,7 @@ export const LAYOUT_CSS = `/* ---------- mobile-only layout ---------- */
     }
   }
   @media (max-width: 359px) {
-    [data-mobile-nav="frame"] [data-phase] header:has([class$="_crumbs"] [class*="_root"]):has([class$="_headerActions"] [class*="_root"]) [class$="_label"]:has(> svg) {
+    [data-mobile-nav="frame"] [data-phase] header:has([class*="_crumbs"] [class*="_root"]):has([class*="_headerActions"] [class*="_root"]) [class*="_label"]:has(> svg) {
       display: none !important;
     }
   }
@@ -468,7 +493,7 @@ export const LAYOUT_CSS = `/* ---------- mobile-only layout ---------- */
   /* --- Header popovers on mobile (dsh-client-ui-jobs / dsh-client-ui-subagent) --- */
   /* The official entries sit in the session header actions. Their popovers
      are anchored to the trigger's left edge, so clamp them to the viewport. */
-  [data-mobile-nav="frame"] [data-phase] header [class$="_menu"] {
+  [data-mobile-nav="frame"] [data-phase] header [class*="_menu"] {
     left: 8px !important;
     right: auto !important;
     width: min(336px, calc(100vw - 16px));
@@ -551,7 +576,7 @@ export const LAYOUT_CSS = `/* ---------- mobile-only layout ---------- */
      reconciler task (settings-toolbar-reparent), so the tab list must be
      anchored by its class, NOT by :last-child (the reparented toolbar
      becomes the nav's new last child). */
-  [aria-modal="true"]:has(> :first-child > :last-child > button):not(:has([role="navigation"])):not(:has([class*="ZuhsRW"])) > :first-child [class$="_navList"] {
+  [aria-modal="true"]:has(> :first-child > :last-child > button):not(:has([role="navigation"])):not(:has([class*="ZuhsRW"])) > :first-child [class*="_navList"] {
     flex: 1 1 auto;
     min-width: 0;
     flex-direction: row !important;
@@ -568,7 +593,7 @@ export const LAYOUT_CSS = `/* ---------- mobile-only layout ---------- */
      that would defeat flex-end, so neutralize them. The close button gets
      a round tappable base so it reads as its own control, not part of the
      outline button. */
-  [aria-modal="true"]:has(> :first-child > :last-child > button):not(:has([role="navigation"])):not(:has([class*="ZuhsRW"])) [class$="_header"] {
+  [aria-modal="true"]:has(> :first-child > :last-child > button):not(:has([role="navigation"])):not(:has([class*="ZuhsRW"])) [class*="_header"]:not([class*="_headerActions"]) {
     flex: 0 0 auto;
     justify-content: flex-end;
     align-items: center;
@@ -576,11 +601,11 @@ export const LAYOUT_CSS = `/* ---------- mobile-only layout ---------- */
     padding: 0 0 0 4px;
     min-height: 40px;
   }
-  [aria-modal="true"]:has(> :first-child > :last-child > button):not(:has([role="navigation"])):not(:has([class*="ZuhsRW"])) [class$="_header"] > * {
+  [aria-modal="true"]:has(> :first-child > :last-child > button):not(:has([role="navigation"])):not(:has([class*="ZuhsRW"])) [class*="_header"]:not([class*="_headerActions"]) > * {
     margin-left: 0 !important;
     margin-right: 0 !important;
   }
-  [aria-modal="true"]:has(> :first-child > :last-child > button):not(:has([role="navigation"])):not(:has([class*="ZuhsRW"])) [class$="_header"] > :last-child {
+  [aria-modal="true"]:has(> :first-child > :last-child > button):not(:has([role="navigation"])):not(:has([class*="ZuhsRW"])) [class*="_header"]:not([class*="_headerActions"]) > :last-child {
     width: 32px;
     height: 32px;
     border-radius: 50% !important;
@@ -593,10 +618,10 @@ export const LAYOUT_CSS = `/* ---------- mobile-only layout ---------- */
      vertical cards (~268px) that eat half the sheet. Turn them into a
      compact horizontal trio (icon + label inline, equal widths).
      Relies on the official cube-row class name of this version. */
-  [aria-modal="true"] [class$="_cubeRow"] {
+  [aria-modal="true"] [class*="_cubeRow"] {
     gap: 6px;
   }
-  [aria-modal="true"] [class$="_cubeRow"] > * {
+  [aria-modal="true"] [class*="_cubeRow"] > * {
     flex: 1 1 0;
     flex-direction: row !important;
     align-items: center;

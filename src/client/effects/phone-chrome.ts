@@ -196,7 +196,14 @@ export function installPhoneChrome(ctx: ClientContext): void {
     const bodyBg = (): string => getComputedStyle(document.body).backgroundColor
 
     const sync = (): void => {
-      if (viewport !== null) viewport.content = 'width=device-width, initial-scale=1, viewport-fit=cover'
+      if (viewport !== null) {
+        // iOS Safari auto-zooms when focusing any field below 16px unless the
+        // viewport meta carries maximum-scale=1. The host page may set that
+        // flag; this rewrite REPLACES the meta, so carry the token forward
+        // instead of dropping it (dispose restores the original anyway).
+        const locked = /(^|,)\s*maximum-scale\s*=/.test(viewport.content)
+        viewport.content = `width=device-width, initial-scale=1${locked ? ', maximum-scale=1' : ''}, viewport-fit=cover`
+      }
       themeMeta.content = bodyBg()
       if (themeMeta.parentElement === null) document.head.appendChild(themeMeta)
     }
@@ -247,24 +254,35 @@ export function installOverlayInteractions(ctx: ClientContext): void {
     }
     // Capture phase: run before the shell or a plugin processes the click,
     // so takeover panels never render under the open drawer.
-    const onDrawerClick = (event: MouseEvent): void => {
-      if (document.querySelector('[aria-modal="true"]') !== null) return
-      if (!drawerOpen()) return
-      const target = event.target as HTMLElement | null
-      if (target === null) return
+    const shouldCloseOnTapInsideDrawer = (target: EventTarget | null): boolean => {
+      if (document.querySelector('[aria-modal="true"]') !== null) return false
+      if (!drawerOpen()) return false
+      if (!(target instanceof Element)) return false
       const drawer = document.querySelector<HTMLElement>('[data-mobile-nav="frame"] > :first-child')
-      if (drawer === null || !drawer.contains(target)) return
-      if (target.closest('[class*="sessionRow"] button') !== null) return
-      const navigates = target.closest(
+      if (drawer === null || !drawer.contains(target)) return false
+      if (target.closest('[class*="sessionRow"] button') !== null) return false
+      return target.closest(
         'button[data-dsh-taskboard-entry], button[data-dsh-ssh-entry], [class*="newSession"], [class*="sessionRow"], [class*="searchResultRow"], [class*="searchResultWorkspace"]',
-      )
-      if (navigates !== null) toggleSidebar()
+      ) !== null
+    }
+    const onDrawerClick = (event: MouseEvent): void => {
+      if (shouldCloseOnTapInsideDrawer(event.target)) toggleSidebar()
+    }
+    // Touch path: navigating from a drawer row unmounts it before the
+    // browser synthesizes the tap click, so the click never reaches the
+    // document and the drawer would stay open. Close on pointerup instead
+    // (mouse keeps the click path; pointerType guards keep them exclusive).
+    const onDrawerPointerUp = (event: PointerEvent): void => {
+      if (event.pointerType !== 'touch' && event.pointerType !== 'pen') return
+      if (shouldCloseOnTapInsideDrawer(event.target)) toggleSidebar()
     }
     document.addEventListener('keydown', onKeyDown, true)
     document.addEventListener('click', onDrawerClick, true)
+    document.addEventListener('pointerup', onDrawerPointerUp, true)
     return () => {
       document.removeEventListener('keydown', onKeyDown, true)
       document.removeEventListener('click', onDrawerClick, true)
+      document.removeEventListener('pointerup', onDrawerPointerUp, true)
     }
   })
 }

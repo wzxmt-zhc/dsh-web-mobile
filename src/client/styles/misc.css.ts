@@ -9,7 +9,7 @@ export const MISC_CSS = `@media (max-width: 1023px) {
      the official centered hero, shrink the textarea line box, slim the card
      padding and the tool row, and close the gap under the headline. */
 
-  [data-phase="hero"] [class$="_card"]:has(textarea) {
+  [data-phase="hero"] [class*="_card"]:has(textarea) {
     padding-top: 6px !important;
     gap: 8px !important;
   }
@@ -22,18 +22,18 @@ export const MISC_CSS = `@media (max-width: 1023px) {
   [data-phase="hero"] textarea:placeholder-shown {
     height: 28px !important;
   }
-  [data-phase="hero"] [class$="_card"]:has(textarea:placeholder-shown) > [class$="_scroll"],
-  [data-phase="hero"] [class$="_card"]:has(textarea:placeholder-shown) [class$="_grow"] {
+  [data-phase="hero"] [class*="_card"]:has(textarea:placeholder-shown) > [class*="_scroll"],
+  [data-phase="hero"] [class*="_card"]:has(textarea:placeholder-shown) [class*="_grow"] {
     height: 28px !important;
   }
-  [data-phase="hero"] [class$="_card"]:has(textarea) > [class$="_row"] {
+  [data-phase="hero"] [class*="_card"]:has(textarea) > [class*="_row"] {
     padding-top: 2px !important;
   }
-  [data-phase="hero"] [class$="_headline"] {
+  [data-phase="hero"] [class*="_headline"] {
     line-height: 1.15 !important;
     margin-bottom: 0 !important;
   }
-  [data-phase="hero"] [class$="_stack"] {
+  [data-phase="hero"] [class*="_stack"] {
     gap: 0 !important;
   }
 
@@ -88,8 +88,8 @@ export const MISC_CSS = `@media (max-width: 1023px) {
       class-name suffix match follows the plugin's established harness
       CSS-module convention (verified against the live app: generated names
       end with the original local name, e.g. uV2eYG_input / qDHVXG_searchInput). */
-  [data-question-key] [class$="_customInput"],
-  [data-question-key] [class$="_customTextarea"] {
+  [data-question-key] [class*="_customInput"],
+  [data-question-key] [class*="_customTextarea"] {
     font-size: 16px !important;
   }
 }
@@ -129,7 +129,7 @@ export const MISC_CSS = `@media (max-width: 1023px) {
   /* Settings sections (e.g. Agent presets) often carry a desktop max-width
      (720px) that leaves a dead strip on the right once the sheet is capped to
      the same width; let them fill the sheet body instead. */
-  [aria-modal="true"] [class$="_section"] {
+  [aria-modal="true"] [class*="_section"] {
     width: 100% !important;
     max-width: none !important;
   }
