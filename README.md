@@ -59,6 +59,13 @@ dsh plugin --profile web add link:/path/to/dsh-web-mobile
 
 ## 更新内容
 
+### v2.5.2
+
+**修复**
+
+- 手机上点抽屉里的历史会话「抽屉收起但对话不打开」的问题彻底修复：抽屉导航关闭改为**以导航事实为准**——触摸点选会话/搜索树行时先不关抽屉，改为观察 `aria-selected`，只有当另一行确实被选中（React 已完成会话切换）才收起；已选中行与其它导航目标保持 pointerup 直关。不再依赖浏览器是否合成 tap 的 click，iOS Safari / Opera iOS 等抑制兼容 click 的壳全部覆盖（上游 #32，取代此前的自愈式 click 补发方案）
+- 子代理计数芯片在 onClick 代上游（`dsh-client-ui-subagent` 0.1.0-rc.6+，哈希 `h8S2Va_`）上的「点开一闪即退」竞态修复：一次 tap 不再触发两次开关切换
+
 ### v2.5.1
 
 **修复**
