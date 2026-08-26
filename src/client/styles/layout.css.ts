@@ -146,6 +146,22 @@ export const LAYOUT_CSS = `/* ---------- mobile-only layout ---------- */
     min-width: 0;
   }
 
+  /* Markdown images: the official rule often forces width:100%, which
+     upscales small square images to the full message column. Show small
+     images at their intrinsic size; large / very wide images still scale
+     down to fit the column (max-width:100% keeps horizontal panoramas
+     adaptive without overflowing). */
+  [data-phase] [class*="_scroll"]:not([class*="_scrollBody"]) img {
+    width: auto !important;
+    max-width: 100% !important;
+    height: auto !important;
+    /* Cap square / tall images so a big sticker does not dominate the
+       narrow column; landscape images stay governed by max-width only.
+       The plain px line is the fallback for engines without dvh. */
+    max-height: 220px !important;
+    max-height: min(40dvh, 220px) !important;
+  }
+
   /* User bubbles: the official stack is capped at min(525px, 82%), which on a
      phone leaves a large blank strip on the left and pushes the bubble high.
      On mobile let the user message fill the same full width as assistant
@@ -303,20 +319,57 @@ export const LAYOUT_CSS = `/* ---------- mobile-only layout ---------- */
   /* The context meter in the trailing lane is another fixed-size icon
      control: its trigger is officially width:28px flex:none, but the root
      itself is shrinkable, so a squeezed root lets the trigger paint over
-     the pinned send button. Keep the whole meter at its natural size; it
-     has no aria-haspopup marker, so the model-selector rules do not apply. */
+     the pinned send button. Keep the whole meter at its natural size; its
+     trigger uses aria-haspopup="dialog", so the model-selector menu rules
+     (keyed on "menu") still do not apply. */
   [data-phase] [class*="_card"]:has(textarea) [class*="_row"]:has([class*="_trailing"]) > [class*="_trailing"] > [class*="_root"] {
     flex: none;
     min-width: 0;
   }
+  /* ContextMeter (JObwrW_ hash family) right-cluster pinning: keep the meter
+     at its official size (28x28 trigger, 14px ring -- enlarging the ring made
+     it steal attention) and glue it to the send button. A small negative
+     right margin trims the 6px lane gap to 2px against send. Anchor on the
+     unique aria-haspopup="dialog" trigger (no other composer control uses
+     it), not the hashed class, so an upstream hash bump cannot silently
+     unhook us. Knob: margin-right trim (-4px). */
+  [data-phase] [class*="_card"]:has(textarea) [class*="_row"]:has([class*="_trailing"]) > [class*="_trailing"] > [class*="_root"]:has(> [class*="_trigger"][aria-haspopup="dialog"]) {
+    margin-right: -4px;
+  }
+  /* The model pill joins the same right cluster: its margin-left:auto absorbs
+     ALL trailing slack, so the adaptive void sits between the tools lane and
+     the pill (visible on wide phones/tablets), while [pill][meter][send] stay
+     welded together at the right edge on every width. Descendant combinator
+     on purpose: the pill root sits behind a display:contents wrapper, so a
+     direct-child combinator silently misses (probe-verified). Within the
+     trailing lane aria-haspopup="menu" belongs to the model trigger alone. */
+  [data-phase] [class*="_card"]:has(textarea) [class*="_row"]:has([class*="_trailing"]) > [class*="_trailing"] [class*="_root"]:has(> [class*="_trigger"][aria-haspopup="menu"]) {
+    margin-left: auto;
+    margin-right: -4px;
+  }
+  /* Shrink only the trigger BOX (28 -> 24, padding zeroed) while the ring
+     ink stays at its official 14px: the dead inset per side drops from 7px
+     to 5px so the small ring no longer floats in its own button. 24x24 keeps
+     the WCAG 2.2 minimum target size. Ring size itself is intentionally
+     untouched -- enlarging it was rejected as attention-grabbing. */
+  [data-phase] [class*="_card"]:has(textarea) [class*="_row"]:has([class*="_trailing"]) > [class*="_trailing"] > [class*="_root"]:has(> [class*="_trigger"][aria-haspopup="dialog"]) > [class*="_trigger"] {
+    width: 24px;
+    height: 24px;
+    padding: 0;
+  }
   /* Pin the send button to the right edge of the trailing lane.
-     The lane is stretched (flex:1 1 auto) so leftover space would otherwise
-     pile up on its right and let the button drift as model/context labels
-     change size. margin-left:auto absorbs that free space, keeping the
-     button glued to the right edge at its official fixed 34x34 size. */
+     The model pill's margin-left:auto (rule above) is the primary slack
+     absorber that keeps [pill][meter][send] welded at the right edge; this
+     margin-left:auto only remains as the fallback for states where neither
+     the pill nor the meter renders. The :has override zeroes it whenever
+     either control is present, so two autos can never split the void and
+     float the pill mid-lane. */
   [data-phase] [class*="_card"]:has(textarea) [class*="_row"]:has([class*="_trailing"]) > [class*="_trailing"] > [class*="_primary"] {
     flex: none;
     margin-left: auto;
+  }
+  [data-phase] [class*="_card"]:has(textarea) [class*="_row"]:has([class*="_trailing"]) > [class*="_trailing"]:has([class*="_trigger"][aria-haspopup="menu"], > [class*="_root"] > [class*="_trigger"][aria-haspopup="dialog"]) > [class*="_primary"] {
+    margin-left: 0;
   }
 
   /* --- Session header on mobile ---
@@ -592,8 +645,11 @@ export const LAYOUT_CSS = `/* ---------- mobile-only layout ---------- */
      would now hit the options area. Children carry official auto-margins
      that would defeat flex-end, so neutralize them. The close button gets
      a round tappable base so it reads as its own control, not part of the
-     outline button. */
-  [aria-modal="true"]:has(> :first-child > :last-child > button):not(:has([role="navigation"])):not(:has([class*="ZuhsRW"])) [class*="_header"]:not([class*="_headerActions"]) {
+     outline button. _headerStatic is excluded: @linxin666 plugin settings
+     cards (pet / community plugins / skin center / live stats) name their
+     card header *_headerStatic, which would otherwise catch the round-base
+     rule on its full-width _headText span and paint a gray ellipse. */
+  [aria-modal="true"]:has(> :first-child > :last-child > button):not(:has([role="navigation"])):not(:has([class*="ZuhsRW"])) [class*="_header"]:not([class*="_headerActions"]):not([class*="_headerStatic"]) {
     flex: 0 0 auto;
     justify-content: flex-end;
     align-items: center;
@@ -601,11 +657,11 @@ export const LAYOUT_CSS = `/* ---------- mobile-only layout ---------- */
     padding: 0 0 0 4px;
     min-height: 40px;
   }
-  [aria-modal="true"]:has(> :first-child > :last-child > button):not(:has([role="navigation"])):not(:has([class*="ZuhsRW"])) [class*="_header"]:not([class*="_headerActions"]) > * {
+  [aria-modal="true"]:has(> :first-child > :last-child > button):not(:has([role="navigation"])):not(:has([class*="ZuhsRW"])) [class*="_header"]:not([class*="_headerActions"]):not([class*="_headerStatic"]) > * {
     margin-left: 0 !important;
     margin-right: 0 !important;
   }
-  [aria-modal="true"]:has(> :first-child > :last-child > button):not(:has([role="navigation"])):not(:has([class*="ZuhsRW"])) [class*="_header"]:not([class*="_headerActions"]) > :last-child {
+  [aria-modal="true"]:has(> :first-child > :last-child > button):not(:has([role="navigation"])):not(:has([class*="ZuhsRW"])) [class*="_header"]:not([class*="_headerActions"]):not([class*="_headerStatic"]) > :last-child {
     width: 32px;
     height: 32px;
     border-radius: 50% !important;

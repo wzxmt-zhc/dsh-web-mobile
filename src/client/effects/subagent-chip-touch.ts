@@ -61,8 +61,8 @@ export function installSubagentChipTouch(ctx: ClientContext): void {
     }
 
     const onPointerUp = (event: PointerEvent): void => {
-      armSwallowWindow()
       if (event.pointerType !== 'touch' && event.pointerType !== 'pen') return
+      armSwallowWindow()
       const target = event.target
       if (!(target instanceof Element)) return
       const trigger = target.closest<HTMLElement>(CHIP_TRIGGER_SELECTOR)
@@ -80,6 +80,7 @@ export function installSubagentChipTouch(ctx: ClientContext): void {
     }
 
     const onAnyPointerActivity = (event: PointerEvent): void => {
+      if (event.pointerType !== 'touch' && event.pointerType !== 'pen') return
       armSwallowWindow()
       void event
     }

@@ -32,7 +32,7 @@ import { rm } from 'node:fs/promises'
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import type { Context } from '@deepseek-ai/cordis'
 import type { SessionHeader, SessionId } from '@deepseek-ai/dsh-session'
-import { installResponseCompression } from './compress'
+import { installResponseCompression } from './compress.js'
 // Type-only augmentation pulls: each package merges its service onto the
 // cordis Context (webServer / sessionPersistence / workspaceRegistry /
 // sessions / agents); nothing else is imported from them.
