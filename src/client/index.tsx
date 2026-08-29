@@ -4,6 +4,7 @@ import { MobileDrawerFooter } from './components/MobileDrawerFooter.tsx'
 import { MOBILE_CSS } from './styles/index.ts'
 
 import { installFrameController, installOverlayInteractions, installPhoneChrome, installReconciler, registerReconcileTasks } from './effects/phone-chrome.ts'
+import { installSidebarSwipe } from './effects/sidebar-swipe.ts'
 import { installSubagentChipTouch } from './effects/subagent-chip-touch.ts'
 import { installAionuiCompat } from './effects/aionui-compat.ts'
 import { installSessionMenuDelete } from './effects/session-menu.ts'
@@ -19,6 +20,14 @@ declare module '@deepseek-ai/dsh-client-ui-slots' {
 
 /** Required services (cordis fiber inject — the loader passes all module exports as an object plugin). */
 export const inject = ['slots', 'layout', 'locale', 'sessionLogDownload', 'sessions', 'workspaces']
+
+/**
+ * Session-id shape the installed host's sessionLogDownload.download expects.
+ * Derived, never imported, so one program type-checks against every host
+ * generation: 0.1.1 types the parameter as plain string, 0.1.2-alpha.1 brands
+ * it Branded<'SessionId'>. The runtime value is always the host's own id.
+ */
+type DownloadSessionId = Parameters<ClientContext['sessionLogDownload']['download']>[0]
 
 /**
  * Mobile-adaptive shell, browser half: injects the mobile stylesheet, then
@@ -154,6 +163,10 @@ export function apply(ctx: ClientContext): void {
   // rename / fork / archive) with a confirm dialog. Mobile-only.
   installSessionMenuDelete(ctx)
 
+  // Sidebar swipe gestures: edge swipe-in opens the drawer, content swipe-out
+  // closes it (release-classified, zero inline transforms — A 档).
+  installSidebarSwipe(ctx)
+
   // Lineage-count chip: reliable open/close on touch pointers (upstream is
   // hover-timer driven and has no onClick on the count variant).
   installSubagentChipTouch(ctx)
@@ -190,7 +203,11 @@ export function apply(ctx: ClientContext): void {
     order: 5,
     locale: NS,
     inject: () => ({
-      downloadSessionLog: (sessionId: string) => ctx.sessionLogDownload.download(sessionId),
+      // The component's internal id is a plain string (slot runtime typing);
+      // the host-generation brand boundary lives here and only here, hence
+      // the double assertion (string and Branded<'SessionId'> do not overlap).
+      downloadSessionLog: (sessionId: string) =>
+        ctx.sessionLogDownload.download(sessionId as unknown as DownloadSessionId),
       toggleSidebar: () => ctx.layout.toggleSidebar(),
     }),
   }, MobileDrawerFooter))

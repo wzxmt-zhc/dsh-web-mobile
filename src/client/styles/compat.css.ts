@@ -260,6 +260,15 @@ export const COMPAT_CSS = `@media (max-width: 1023px) {
     width: 100% !important;
     max-width: 100% !important;
   }
+  /* iOS Safari auto-zooms a focused input whose computed font-size is below
+     16px. dshmarket's tab search uses the shared primitive Input at 13px;
+     raise only this market-owned field on mobile so focusing it keeps the
+     current viewport scale. Scoped to the market root to avoid changing
+     unrelated settings/search fields; pinch zoom stays available. */
+  [data-dsh-market-root] [class*="tabSearch"] input,
+  [data-dsh-market-root] input[class*="tabSearch"] {
+    font-size: 16px !important;
+  }
 
   /* ---------- dshmarket polish: Tasks operations popup ----------
      Upstream .opPanel is a small dropdown pinned to the right edge of its

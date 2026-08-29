@@ -7,9 +7,14 @@ export const LAYOUT_CSS = `/* ---------- mobile-only layout ---------- */
   /* --- Phone chrome ---
      The system status bar stays visible (no fullscreen). Two adjustments
      make it behave:
-     - touch-action: manipulation kills double-tap-to-zoom (and the 300ms
-       tap delay) while keeping pan and pinch zoom; the client also
-       suppresses legacy-iOS gesturestart as a fallback.
+     - touch-action: pan-y kills double-tap-to-zoom (and the 300ms tap
+       delay) while keeping vertical pan and pinch zoom. pan-y (not
+       manipulation) also forbids HORIZONTAL pan on the root: a left-edge
+       horizontal drag would otherwise be claimed by the browser as a pan
+       (firing pointercancel) before the sidebar swipe layer can classify
+       it. touch-action does not inherit — only touches landing directly on
+       the root background are affected, so inner horizontal scrolling of
+       content containers is untouched.
      - With the client's viewport-fit=cover, env(safe-area-inset-top) is the
        status bar / notch height; the rules below push the app content below
        it so the status bar never covers anything. Off notched phones (or in
@@ -17,7 +22,7 @@ export const LAYOUT_CSS = `/* ---------- mobile-only layout ---------- */
        status bar) the inset is 0 and nothing shifts. */
   html,
   body {
-    touch-action: manipulation !important;
+    touch-action: pan-y !important;
   }
 
   /* AppFrame: the drawer takes the sidebar column out of grid flow, so the
@@ -25,8 +30,20 @@ export const LAYOUT_CSS = `/* ---------- mobile-only layout ---------- */
      center every pixel and keep the details track at zero. The top padding
      clears the status bar / notch for every in-flow surface (session header,
      messages, composer); the absolutely-positioned drawer is unaffected (its
-     containing block is the frame's padding box, i.e. still the frame top). */
+     containing block is the frame's padding box, i.e. still the frame top).
+     box-sizing MUST be border-box: the official frame is height:100% of a
+     100%-height body, and it is content-box by default, so the safe-area
+     padding is ADDED on top of the full viewport height. The frame then grows
+     to 100% + inset, the document itself becomes scrollable by exactly the
+     inset, and the sticky composer seat (bottom:0 of the scroll body) lands
+     below the visual viewport. Symptoms on a notched phone: the whole UI can
+     be swiped up, the composer lifts off the bottom leaving a blank strip,
+     and the newest message sits under the composer because the host's
+     at-bottom follow scrolls its own scroll body, not the document. With
+     border-box the padding is taken out of the 100% height instead, so the
+     frame is exactly one viewport tall and the document never scrolls. */
   [data-mobile-nav="frame"] {
+    box-sizing: border-box !important;
     position: relative !important;
     grid-template-columns: minmax(0, 1fr) 0 0 !important;
     padding-top: env(safe-area-inset-top, 0px) !important;
@@ -74,6 +91,34 @@ export const LAYOUT_CSS = `/* ---------- mobile-only layout ---------- */
      viewport-anchored: it dims the full screen and the sheet sits at left:8. */
   [data-mobile-nav="frame"]:not([data-sidebar-collapsed]) > :first-child {
     transform: none !important;
+  }
+
+  /* Drawer swipe gestures (edge swipe-in / content swipe-out, see
+     docs/specs/2026-08-27-sidebar-swipe-gestures.md).
+     Two rules are load-bearing for the gesture layer:
+     - touch-action: pan-y on the drawer lets horizontal pointermove events
+       reach the gesture code — WITHOUT it the browser treats a horizontal
+       stroke as a pan, fires pointercancel and the gesture never classifies
+       (vertical panning stays intact).
+     - The left-edge hotspot strip (data-mobile-nav="hotspot") is the visual
+       affordance for swipe-in. It is pointer-events:none: start-hit is
+       decided purely by geometry on the document capture listener, so the
+       strip must never swallow taps aimed at content behind it (backdrop,
+       FAB, drawer toggle). z-index 30 sits above the backdrop (also 30, but
+       the backdrop is appended after the hotspot, so DOM order keeps the
+       backdrop on top) and below the drawer (40). */
+  [data-mobile-nav="frame"] > :first-child {
+    touch-action: pan-y !important;
+  }
+  [data-mobile-nav="frame"] > [data-mobile-nav="hotspot"] {
+    position: absolute !important;
+    inset-inline-start: 0 !important;
+    top: 0 !important;
+    bottom: 0 !important;
+    width: 24px;
+    z-index: 30 !important;
+    pointer-events: none !important;
+    -webkit-tap-highlight-color: transparent;
   }
 
   /* Drag handles are useless on touch and would float over the drawer. */

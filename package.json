@@ -1,6 +1,6 @@
 {
   "name": "@dsh-external/dsh-mobile-nav",
-  "version": "2.5.2",
+  "version": "2.5.3",
   "description": "尽可能的使dsh适配竖屏等移动端设备",
   "type": "module",
   "main": "lib/index.js",
@@ -29,7 +29,7 @@
     "build": "tsc -p tsconfig.json && tsc -p tsconfig.client.json && node scripts/build-client.mjs",
     "verify": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.client.json --noEmit",
     "smoke:cdp": "node scripts/cdp-probe.mjs",
-    "test:core": "node --test tests/reconciler-core.test.ts",
+    "test:core": "node --test tests/reconciler-core.test.ts tests/sidebar-swipe.test.ts",
     "prepack": "npm run build"
   },
   "dsh": {
@@ -39,7 +39,14 @@
     "client": {
       "platform": "web",
       "inject": [
-        "@deepseek-ai/dsh-client-runtime"
+        "@deepseek-ai/dsh-client-locale",
+        "@deepseek-ai/dsh-client-ui-slots",
+        "@deepseek-ai/dsh-client-ui-primitives",
+        "@deepseek-ai/dsh-client-ui-conversation",
+        "@deepseek-ai/dsh-client-ui-layout",
+        "@deepseek-ai/dsh-client-ui-settings",
+        "@deepseek-ai/dsh-client-ui-sidebar",
+        "@deepseek-ai/dsh-session-log-export"
       ]
     }
   },
