@@ -1,15 +1,14 @@
 import type { ClientContext } from '@deepseek-ai/dsh-client-runtime/client'
-import { installMobileEffect, getFrame, addReconcilerTask } from './phone-chrome.ts'
-import { markGestureConsumed, consumeIfGestured } from './gesture-guard.ts'
-import type { ReconcilerTask } from '../core/reconciler-core.ts'
+import { installMobileEffect, getFrame } from './phone-chrome.ts'
+import { markGestureConsumed, consumeIfGestured, markStrokeLocked, clearStrokeLocked } from './gesture-guard.ts'
 
 /**
  * Sidebar drawer swipe gestures (release-classified, no follow-the-finger
  * transform — A 档 per docs/specs/2026-08-27-sidebar-swipe-gestures.md).
  *
  * Two gestures, both a rightward stroke:
- * - edge swipe-in: the pointer goes down inside the left hotspot (24px) and
- *   the drawer is closed → opens it;
+ * - edge swipe-in: the pointer goes down within START_ZONE_PX (48px) of the
+ *   left edge and the drawer is closed → opens it;
  * - content swipe-out: the pointer goes down anywhere inside the open drawer
  *   content and the drawer is open → closes it.
  *
@@ -21,18 +20,22 @@ import type { ReconcilerTask } from '../core/reconciler-core.ts'
  * follow-the-finger design).
  *
  * Coexistence with the host's overlay interactions (document capture click /
- * pointerup + the iOS self-healing re-dispatch) is via the gesture-guard
- * predicate: a classified swipe marks its target chain as consumed, the
- * host handlers' first line returns early for consumed events, and a
- * capture-phase click handler swallows the synthetic tap that follows the
- * stroke — so a swipe can never toggle twice or navigate a row.
+ * pointerup) is two-layered via gesture-guard.ts: (1) tryLock publishes an
+ * axis-lock flag the instant the stroke locks horizontal — during
+ * pointermove, strictly before any pointerup — and the host handlers yield
+ * on it first, because they are registered EARLIER and the post-release
+ * consume marks do not exist yet on the stroke's own release event (audit
+ * S0: the host toggled first and the gesture toggled back, net zero);
+ * (2) a classified swipe additionally marks its target chain consumed so
+ * the synthetic click after the stroke can never toggle twice or navigate
+ * a row.
  */
 
 /**
  * Start-zone width for geometry hit-testing: the pointer counts as "from the
- * left edge" anywhere inside this strip. Wider than the visual hotspot
- * (24px, owned by layout.css.ts `[data-mobile-nav="hotspot"]`) on purpose —
- * the hotspot is just a hint; real fingers land 30-50px off the edge and a
+ * left edge" anywhere inside this strip. Wider than the historical 24px gate
+ * (whose visual hotspot element was removed — audit C2: judgment is purely
+ * geometric) on purpose — real fingers land 30-50px off the edge and a
  * 24px-only gate is what made swipes read as plain content scrolling
  * ("识别成对话内容滚动", 2026-08-27 user feedback). The distance / velocity
  * thresholds below still gate the commit, so widening the start zone cannot
@@ -256,6 +259,11 @@ function tryLock(event: PointerEvent): boolean {
   }
   tracking = true
   lockDrawerOpen = drawerOpen()
+  // Publish the lock to the host handlers (see gesture-guard.ts): they run
+  // EARLIER in this release event's capture phase, before endStroke writes
+  // any consume mark — the flag is their only ordering-proof yield signal
+  // (audit S0/S1).
+  markStrokeLocked()
   return true
 }
 
@@ -312,12 +320,11 @@ function endStroke(
   // then mark the stroke consumed so the tap's synthetic click cannot
   // double-toggle or navigate a row. The mark walks the ancestor chain up
   // to the DRAWER (not the frame): the synthetic click always lands on the
-  // stroke's own start target (left-edge hotspot / drawer content), never
+  // stroke's own start target (left-edge start zone / drawer content), never
   // on the backdrop — but the backdrop is a frame child, so marking up to
   // the frame would make the host treat a genuine backdrop tap within the
-  // 1s window as consumed and swallow the close (the "tap twice to close"
-  // bug). The host's synthetic re-dispatched click targets the row root,
-  // which sits inside the drawer and is still covered.
+  // 300ms window as consumed and swallow the close (the "tap twice to close"
+  // bug).
   const drawer = findDrawer()
   const markUpTo = drawer ?? null
   markGestureConsumed(event.target, CONSUME_WINDOW_MS, markUpTo)
@@ -331,6 +338,7 @@ function reset(): void {
   trackingPointer = 0
   tracking = false
   samples = []
+  clearStrokeLocked()
 }
 
 /** The logical reading direction of the frame (RTL support). */
@@ -339,48 +347,11 @@ function frameRtl(): boolean {
   return frame !== null && getComputedStyle(frame).direction === 'rtl'
 }
 
-/**
- * Hotspot task: keep the left-edge strip mounted while the mobile effect is
- * active, exactly like the other reconciler tasks (it is just a visual /
- * touch-affordance layer — start-hit is decided purely by geometry, so the
- * hotspot itself carries no listeners). The task runs on `data-phase` /
- * `data-sidebar-collapsed` changes so the effect re-evaluates takeovers.
- */
-function createHotspotTask(): ReconcilerTask {
-  let hotspot: HTMLDivElement | null = null
-  return {
-    name: 'sidebar-swipe-hotspot',
-    scopes: ['*', 'data-sidebar-collapsed', 'data-phase'],
-    ensure: () => {
-      const frame = getFrame()
-      if (frame === null) return
-      if (takeoverActive()) {
-        hotspot?.remove()
-        hotspot = null
-        return
-      }
-      if (hotspot === null) {
-        hotspot = document.createElement('div')
-        hotspot.dataset.mobileNav = 'hotspot'
-        hotspot.setAttribute('aria-hidden', 'true')
-        frame.appendChild(hotspot)
-      }
-    },
-    dispose: () => {
-      hotspot?.remove()
-      hotspot = null
-    },
-  }
-}
-
 /** Install the gesture layer for the current mobile breakpoint. */
 export function installSidebarSwipe(ctx: ClientContext): void {
-  let removeHotspotTask: (() => void) | null = null
   installMobileEffect(ctx, 'dsh-mobile-nav: sidebar swipe gestures', () => {
     const viewportWidth = (): number =>
       window.innerWidth || document.documentElement.clientWidth || 0
-
-    removeHotspotTask = addReconcilerTask(createHotspotTask())
 
     const onPointerDown = (event: PointerEvent): void => {
       // A new pointer starts a new interaction epoch: drop the previous
@@ -389,6 +360,7 @@ export function installSidebarSwipe(ctx: ClientContext): void {
       // the short CONSUME_WINDOW_MS — keeps the next genuine tap alive
       // instead of eating it at the document-capture click handler.
       consumedEl = null
+      clearStrokeLocked() // belt-and-suspenders: a lost stroke must not leak its lock into this epoch
       if (event.pointerType !== 'touch' && event.pointerType !== 'pen') return
       if (trackingPointer !== 0 && trackingPointer !== event.pointerId) return
       beginStroke(event, frameRtl(), viewportWidth())
@@ -426,7 +398,7 @@ export function installSidebarSwipe(ctx: ClientContext): void {
     //
     // A click whose target is (or is inside) the backdrop or the FAB is
     // NEVER a gesture's synthetic click: the stroke start is always the
-    // left-edge hotspot or the drawer content, never the backdrop (outside
+    // left-edge start zone or the drawer content, never the backdrop (outside
     // the drawer, on the right) or the FAB. The mark chain can reach them
     // in degenerate hit-test cases (e.g. a stroke starting on a point where
     // the empty drawer does not register as the event target), and
@@ -478,10 +450,6 @@ export function installSidebarSwipe(ctx: ClientContext): void {
       document.removeEventListener('touchmove', onTouchMove, { capture: true } as EventListenerOptions)
       document.removeEventListener('visibilitychange', onVisibility)
       window.removeEventListener('blur', reset)
-      if (removeHotspotTask !== null) {
-        removeHotspotTask()
-        removeHotspotTask = null
-      }
       reset()
     }
   })

@@ -8,6 +8,7 @@ import { installSidebarSwipe } from './effects/sidebar-swipe.ts'
 import { installSubagentChipTouch } from './effects/subagent-chip-touch.ts'
 import { installAionuiCompat } from './effects/aionui-compat.ts'
 import { installSessionMenuDelete } from './effects/session-menu.ts'
+import { installDebugBadge } from './debug.ts'
 import { NS, en, zh } from './i18n/locales.ts'
 import type { MobileNavKey } from './i18n/locales.ts'
 
@@ -174,6 +175,10 @@ export function apply(ctx: ClientContext): void {
   installPhoneChrome(ctx)
 
   installAionuiCompat(ctx)
+
+  // Debug badge (?mobile-nav-debug=1): live state overlay for phone-side
+  // repros. No-op without the query param (docs: README, AGENTS.md).
+  installDebugBadge(ctx)
 
   ctx.slots.inject('conversation.session.header.actions', () => ctx.slots.register({
     name: 'conversation.session.header.actions',

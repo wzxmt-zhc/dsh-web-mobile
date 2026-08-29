@@ -10,6 +10,9 @@ import {
   markGestureConsumed,
   consumeIfGestured,
   isGestureConsumed,
+  markStrokeLocked,
+  clearStrokeLocked,
+  isStrokeLocked,
 } from '../src/client/effects/gesture-guard.ts'
 
 const BASE: SwipeThresholds = {
@@ -221,10 +224,34 @@ test('gesture-guard: ancestor-chain coverage with upTo', () => {
   assert.equal(consumeIfGestured({ target: root }), true)
 })
 
-test('gesture-guard: target chain of the synthetic re-dispatched click', () => {
-  // The host's self-healing path re-dispatches a click whose target is the
-  // ROW ROOT, an ancestor of the original release point. A mark made on the
-  // release point with upTo=frame must cover that synthetic click.
+test('gesture-guard: axis-lock flag yields the host before any consume mark exists (audit S0)', () => {
+  // Ordering fact (audit 2026-08-27): the host's document-capture pointerup
+  // (onDrawerPointerUp, registered BEFORE the gesture layer's) runs first on
+  // the stroke's own release event — markGestureConsumed has not been called
+  // yet at that instant, so consumeIfGestured() is still false and the host
+  // toggled the drawer before the gesture could classify (double-flip net
+  // zero, the "dead gesture" bug). The only race-free yield signal is the
+  // axis lock: tryLock writes it during pointermove, strictly before ANY
+  // pointerup.
+  assert.equal(isStrokeLocked(), false, 'idle: lock clear')
+  markStrokeLocked() // what tryLock() does on horizontal dominance
+  const { child } = makeChain()
+  assert.equal(consumeIfGestured({ target: child }), false, 'no consume mark yet — the S0 race window')
+  // The host's first-line check on the same release event:
+  assert.equal(
+    isStrokeLocked() || consumeIfGestured({ target: child }),
+    true,
+    'host yields during a locked stroke even without marks',
+  )
+  clearStrokeLocked() // what reset() does at stroke end
+  assert.equal(isStrokeLocked(), false, 'reset clears the lock')
+})
+
+test('gesture-guard: mark chain covers the synthetic click ancestor target (upTo)', () => {
+  // After a stroke the browser dispatches a synthetic click whose target is
+  // the release point or an ancestor of it (e.g. the row root). Production
+  // marks up to the DRAWER; this test pins the chain invariant with a
+  // root-anchored stub.
   const { child, parent, root } = makeChain()
   markGestureConsumed(child, 100, root)
   assert.equal(consumeIfGestured({ target: parent }), true)
