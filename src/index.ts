@@ -1,9 +1,10 @@
 /**
- * dsh-mobile-nav, node half.
+ * dsh-web-mobile, node half.
  *
  * The browser half ships via exports["./client"], discovered through the
  * package.json dsh.client declaration. This half stays deliberately minimal
- * but is no longer empty: it owns the ONE host capability the mobile drawer
+ * but is no longer empty: it installs transparent gzip/brotli compression for
+ * large JSON responses, and owns the ONE host capability the mobile drawer
  * needs that the harness does not provide — deleting a session.
  *
  * DSH currently offers no session-delete API anywhere (the session menu only
@@ -41,7 +42,7 @@ import type {} from '@deepseek-ai/dsh-session-persistence'
 import type {} from '@deepseek-ai/dsh-workspace'
 import type {} from '@deepseek-ai/dsh-agent'
 
-export const name = 'dsh-mobile-nav'
+export const name = 'dsh-web-mobile'
 
 /** How long to wait for a live agent to converge to idle before refusing. */
 const IDLE_TIMEOUT_MS = 20_000
@@ -99,7 +100,7 @@ export function apply(ctx: Context): void {
   // Transparent gzip/brotli for large JSON responses (long-session history
   // is megabytes on a phone). Patches http.ServerResponse.prototype; the
   // disposer restores it on plugin unload/reload.
-  ctx.effect(() => installResponseCompression(), 'dsh-mobile-nav: response compression')
+  ctx.effect(() => installResponseCompression(), 'dsh-web-mobile: response compression')
 
   ctx.inject(['webServer'], (webCtx) => {
     webCtx.effect(() => webCtx.webServer.register({
@@ -140,7 +141,7 @@ export function apply(ctx: Context): void {
         } catch (error) {
           // A storage fault must never leave the request hanging or pretend
           // the session is unknown: report it as a failure instead.
-          ctx.logger.warn(`dsh-mobile-nav: session-delete listing failed: ${String(error)}`)
+          ctx.logger.warn(`dsh-web-mobile: session-delete listing failed: ${String(error)}`)
           respond(res, 500, {
             error: {
               code: 'delete-lookup-failed',
@@ -187,7 +188,7 @@ export function apply(ctx: Context): void {
               | undefined
             sessionStore?.store?.get(sessionId as SessionId)?.detach?.()
           } catch (error) {
-            ctx.logger.warn(`dsh-mobile-nav: failed to stop live session '${sessionId}': ${String(error)}`)
+            ctx.logger.warn(`dsh-web-mobile: failed to stop live session '${sessionId}': ${String(error)}`)
             respond(res, 409, {
               error: {
                 code: 'session-busy',
@@ -212,7 +213,7 @@ export function apply(ctx: Context): void {
         try {
           await rm(located.path, { force: true })
         } catch (error) {
-          ctx.logger.warn(`dsh-mobile-nav: failed to remove session artifact '${located.path}': ${String(error)}`)
+          ctx.logger.warn(`dsh-web-mobile: failed to remove session artifact '${located.path}': ${String(error)}`)
           respond(res, 500, {
             error: {
               code: 'delete-failed',
@@ -232,6 +233,6 @@ export function apply(ctx: Context): void {
         }
         respond(res, 200, { ok: true, deleted: sessionId })
       },
-    }), 'dsh-mobile-nav: session-delete route')
+    }), 'dsh-web-mobile: session-delete route')
   })
 }

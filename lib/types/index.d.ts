@@ -1,5 +1,5 @@
 import type { Context } from '@deepseek-ai/cordis';
-export declare const name = "dsh-mobile-nav";
+export declare const name = "dsh-web-mobile";
 /**
  * Register the session-delete route once the web route registry exists. The
  * persistence / session / workspace services are read at request time through

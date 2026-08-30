@@ -67,7 +67,7 @@ function escapeHtml(value: string): string {
  * @param ctx - client root context.
  */
 export function installSessionMenuDelete(ctx: ClientContext): void {
-  installMobileEffect(ctx, 'dsh-mobile-nav: session-menu delete', () => {
+  installMobileEffect(ctx, 'dsh-web-mobile: session-menu delete', () => {
     const navT = ctx.locale.bind(NS)
     // Host workspace-browser dictionary for menu-signature detection. Bound
     // lazily so a later-registered dictionary is picked up; the general
@@ -295,7 +295,7 @@ export function installSessionMenuDelete(ctx: ClientContext): void {
         } catch (reason) {
           // Never fail silently: surface internal resolution errors instead of
           // leaving the tap with no visible result.
-          console.error('[dsh-mobile-nav] session delete failed:', reason)
+          console.error('[dsh-web-mobile] session delete failed:', reason)
           showError(navT('deleteErrorGeneric', {
             message: reason instanceof Error ? reason.message : String(reason),
           }))
