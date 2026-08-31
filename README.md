@@ -72,6 +72,18 @@ dsh plugin --profile web add link:/path/to/dsh-web-mobile
 
 ## 更新内容
 
+### v2.5.5
+
+**修复**
+
+- **桌面窄窗口不再激活移动 UI**（2026-08-30 PC 泄漏）：分屏窗口、未最大化窗口、系统显示缩放（如 1920 物理 @200% = 960 CSS px）此前都会掉进移动分支，整套移动 UI 泄漏到桌面（右上 Files 按钮、左上 toggle、底部 stats 行），点击 Files 还因桌面双击习惯触发开→关快速翻转「抽搐」。现在移动断点 = `(max-width: 1023px) AND (pointer: coarse)` 触屏守卫——带鼠标的窗口（含触屏笔电主指针 fine）在任意宽度都保持桌面布局，手机/平板/DSHA 照常
+- misc.css 桌面隐藏块补齐漏列的 `preview-full-toggle`（10 个 `data-mobile-nav` 注入控件清单对账），并改为移动断点的精确补集，守不住补集的 slot 按钮不再在窄桌面露出
+
+**其他**
+
+- 按 awesome-dsh-plugin 新约定自声明截图（`screenshots.json`，3 张 assets 相对路径）
+- 三个 CDP 探针补 `Emulation.setTouchEmulationEnabled`（headless 无 pointer 设备，移动分支需触摸模拟才激活）
+
 ### v2.5.4
 
 **新功能**
