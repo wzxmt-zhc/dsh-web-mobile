@@ -72,6 +72,17 @@ dsh plugin --profile web add link:/path/to/dsh-web-mobile
 
 ## 更新内容
 
+### v2.5.7
+
+**修复**
+
+- **git 分支芯片在 DSH 0.1.2-alpha.1 下不再吸附进 composer 卡片**（2026-08-31）：`git-chip-reparent` 用 `querySelector('textarea')` 定位 composer 卡片，而 alpha.1 输入框已是 `<div contentEditable>`（`data-composer-input`），查不到 textarea 导致卡片为 null、芯片从不被挪进输入卡。现已改为 `[data-composer-input], textarea` 双代锚点
+- **状态栏锚点排除与 debug 徽章同步适配 contentEditable**：`stats-line` 排除 composer 卡片输入区的守卫与 `?mobile-nav-debug=1` 徽章的 `composer` 状态均改为同时识别 `textarea` 与 `data-composer-input`
+
+**其他**
+
+- 与 v2.5.6 同套双代锚点，DSH v0.1.1-rc.2 与 v0.1.2-alpha.1 行为一致
+
 ### v2.5.6
 
 **修复**
