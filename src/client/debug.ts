@@ -37,7 +37,7 @@ export function installDebugBadge(ctx: ClientContext): void {
         `css ${q('style[data-plugin-css*="mobile"]')}  frame ${!!frame}`,
         `previewCol ${vis('[data-aionui-preview-col]')}  explorerCol ${vis('[data-aionui-explorer-col]')}`,
         `previewOpen ${frame?.hasAttribute('data-aionui-preview-open') ?? '?'}  explorerOpen ${frame?.hasAttribute('data-aionui-explorer-open') ?? '?'}  previewFull ${frame?.hasAttribute('data-mobile-preview-full') ?? '?'}`,
-        `header ${vis('[data-phase] header')}  composer ${q('textarea')}`,
+        `header ${vis('[data-phase] header')}  composer ${q('textarea, [data-composer-input]')}`,
         `genui cards ${document.querySelectorAll('[data-genui]').length}  panel ${q('[data-genui-panel]')}`,
         `phase ${document.querySelector('[data-phase]')?.getAttribute('data-phase') ?? '?'}`,
         `errs ${errors.slice(-5).join(' | ') || 'none'}`,

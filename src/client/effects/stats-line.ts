@@ -69,7 +69,11 @@ export function createStatsLineTask(): ReconcilerTask {
       if (root.querySelector('button') !== null) continue
       const text = root.textContent ?? ''
       if (!/(turns|steps|\bLLM\b|轮|步)/.test(text)) continue
-      if (root.querySelector('textarea') !== null) continue
+      // Composer card must never be mistaken for the status strip. It already
+      // holds buttons (skipped above) — belt-and-suspenders also excludes its
+      // input region across both input DOMs (rc.2 <textarea> / alpha.1
+      // contentEditable data-composer-input).
+      if (root.querySelector('textarea, [data-composer-input]') !== null) continue
       root.setAttribute('data-mobile-nav', 'stats')
       moveTps(root)
       return

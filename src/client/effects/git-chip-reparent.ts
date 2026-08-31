@@ -7,7 +7,9 @@ export function createGitChipTask(): ReconcilerTask {
     ensure: () => {
       const chip = document.querySelector('[data-slot="conversation.input.dock"] [data-gitgraph-chip-anchor]')
       if (chip === null) return
-      const card = document.querySelector('textarea')?.closest('[class*="_card"]')
+      // Composer card lookup must cover both DSH 0.1.1-rc.2 (<textarea>) and
+      // 0.1.2-alpha.1 (<div contentEditable data-composer-input>) input DOMs.
+      const card = document.querySelector('[data-composer-input], textarea')?.closest('[class*="_card"]')
       if (card == null) return
       if (chip.parentElement !== card) card.insertBefore(chip, card.firstChild)
     },
