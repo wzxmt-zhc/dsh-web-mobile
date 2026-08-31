@@ -72,6 +72,16 @@ dsh plugin --profile web add link:/path/to/dsh-web-mobile
 
 ## 更新内容
 
+### v2.5.6
+
+**修复**
+
+- **DSH 0.1.2-alpha.1 下 composer 底部工具栏错行**（2026-08-31）：官方在 0.1.2-alpha.1 把输入框从原生 `<textarea>` 重构为 Lexical 的 `<div contentEditable>`（`data-composer-input`），composer 卡片内不再存在 `<textarea>`，导致移动端全部 composer 布局规则（`layout.css.ts` 主战场、`misc.css.ts` hero 空态）依赖的 `:has(textarea)` 锚点整体静默失效，底部回退到官方桌面布局、窄屏下指令/权限与模型/用量/发送各自换行堆积。现已把 composer 卡片识别扩为 `:has(textarea, [data-composer-input])`（rc.2 与 alpha.1 两代 DOM 同时命中），并新增 alpha.1 的空态占位（`data-composer-placeholder`）单行塌缩规则，`flex-wrap: nowrap`、车道伸缩、固定按钮钉边与模型条右缘焊接全部恢复
+
+**其他**
+
+- 兼容 DSH v0.1.1-rc.2（原生 textarea）与 v0.1.2-alpha.1（contentEditable）两种 composer DOM，旧版行为不变
+
 ### v2.5.5
 
 **修复**
