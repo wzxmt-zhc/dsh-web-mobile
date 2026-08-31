@@ -72,6 +72,12 @@ dsh plugin --profile web add link:/path/to/dsh-web-mobile
 
 ## 更新内容
 
+### v2.5.8
+
+**修复**
+
+- **触屏下复制按钮 Tooltip 文字残留（“复制”字样不消失）**（2026-08-31）：DSH 消息操作栏的复制/反馈按钮由 Tooltip 包裹，标签文字（“复制/已复制”）以固定定位气泡 `.bubble` 在 hover/focus 时浮现。触屏 webview 点击后残留 sticky `:hover`/`:focus` 且无 `pointerleave`，气泡文字会一直挂在页面上。因按钮自身图标已翻转为对勾反馈，气泡文字在触屏上多余，现于 `@media (hover: none), (pointer: coarse)` 下隐藏消息操作栏内的 Tooltip 气泡，从根上消除此项与同类粘滞残留
+
 ### v2.5.7
 
 **修复**
