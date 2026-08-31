@@ -9,7 +9,7 @@ export const MISC_CSS = `@media (max-width: 1023px) and (pointer: coarse) {
      the official centered hero, shrink the textarea line box, slim the card
      padding and the tool row, and close the gap under the headline. */
 
-  [data-phase="hero"] [class*="_card"]:has(textarea) {
+  [data-phase="hero"] [class*="_card"]:has(textarea, [data-composer-input]) {
     padding-top: 6px !important;
     gap: 8px !important;
   }
@@ -26,7 +26,16 @@ export const MISC_CSS = `@media (max-width: 1023px) and (pointer: coarse) {
   [data-phase="hero"] [class*="_card"]:has(textarea:placeholder-shown) [class*="_grow"] {
     height: 28px !important;
   }
-  [data-phase="hero"] [class*="_card"]:has(textarea) > [class*="_row"] {
+  /* DSH 0.1.2-alpha.1: input is a Lexical contentEditable (no <textarea>);
+     empty state is signalled by the separate [data-composer-placeholder] node. */
+  [data-phase="hero"] [class*="_card"]:has([data-composer-placeholder]) [data-composer-input] {
+    height: 28px !important;
+  }
+  [data-phase="hero"] [class*="_card"]:has([data-composer-placeholder]) > [class*="_scroll"],
+  [data-phase="hero"] [class*="_card"]:has([data-composer-placeholder]) [class*="_grow"] {
+    height: 28px !important;
+  }
+  [data-phase="hero"] [class*="_card"]:has(textarea, [data-composer-input]) > [class*="_row"] {
     padding-top: 2px !important;
   }
   [data-phase="hero"] [class*="_headline"] {

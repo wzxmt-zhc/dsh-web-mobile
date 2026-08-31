@@ -233,7 +233,7 @@ export const LAYOUT_CSS = `/* ---------- mobile-only layout (narrow viewport AND
      model selector on narrow phones. Keep fixed hit targets fixed, but let
      text-bearing controls shrink and ellipsize before they paint over the
      trailing lane. */
-  [data-phase] [class*="_card"]:has(textarea) [class*="_row"]:has([class*="_trailing"]) {
+  [data-phase] [class*="_card"]:has(textarea, [data-composer-input]) [class*="_row"]:has([class*="_trailing"]) {
     box-sizing: border-box;
     container-type: inline-size;
     container-name: dsh-mobile-composer;
@@ -246,7 +246,7 @@ export const LAYOUT_CSS = `/* ---------- mobile-only layout (narrow viewport AND
        overflow clipping, so the row itself can stay visible. */
     overflow: visible;
   }
-  [data-phase] [class*="_card"]:has(textarea) [class*="_row"]:has([class*="_trailing"]) > :first-child {
+  [data-phase] [class*="_card"]:has(textarea, [data-composer-input]) [class*="_row"]:has([class*="_trailing"]) > :first-child {
     flex: 0 1 auto;
     min-width: 0;
     gap: 6px;
@@ -255,7 +255,7 @@ export const LAYOUT_CSS = `/* ---------- mobile-only layout (narrow viewport AND
        ellipsis is handled by the trigger label itself. */
     overflow: visible;
   }
-  [data-phase] [class*="_card"]:has(textarea) [class*="_row"]:has([class*="_trailing"]) > [class*="_trailing"] {
+  [data-phase] [class*="_card"]:has(textarea, [data-composer-input]) [class*="_row"]:has([class*="_trailing"]) > [class*="_trailing"] {
     flex: 1 1 auto;
     min-width: 0;
     gap: 6px;
@@ -265,7 +265,7 @@ export const LAYOUT_CSS = `/* ---------- mobile-only layout (narrow viewport AND
   /* PermissionSelect / plan controls share the tools lane. Let the
      permission label use the remaining tools width, while the lower-priority
      plan slot keeps an icon-sized target instead of stealing model width. */
-  [data-phase] [class*="_card"]:has(textarea) [class*="_row"]:has([class*="_trailing"]) > :first-child > :nth-child(2) {
+  [data-phase] [class*="_card"]:has(textarea, [data-composer-input]) [class*="_row"]:has([class*="_trailing"]) > :first-child > :nth-child(2) {
     flex: 0 1 auto;
     min-width: 0;
     max-width: none;
@@ -274,14 +274,14 @@ export const LAYOUT_CSS = `/* ---------- mobile-only layout (narrow viewport AND
        overflow hidden crops it. The trigger label clips its own text. */
     overflow: visible;
   }
-  [data-phase] [class*="_card"]:has(textarea) [class*="_row"]:has([class*="_trailing"]) > :first-child > :nth-child(2) > [class*="_trigger"] {
+  [data-phase] [class*="_card"]:has(textarea, [data-composer-input]) [class*="_row"]:has([class*="_trailing"]) > :first-child > :nth-child(2) > [class*="_trigger"] {
     flex: 1 1 auto;
     min-width: 28px;
     max-width: 100%;
     display: flex !important;
     overflow: hidden;
   }
-  [data-phase] [class*="_card"]:has(textarea) [class*="_row"]:has([class*="_trailing"]) > :first-child > :nth-child(2) > [class*="_trigger"] > [class*="_triggerLabel"] {
+  [data-phase] [class*="_card"]:has(textarea, [data-composer-input]) [class*="_row"]:has([class*="_trailing"]) > :first-child > :nth-child(2) > [class*="_trigger"] > [class*="_triggerLabel"] {
     flex: 1 1 auto;
     min-width: 0;
     overflow: hidden;
@@ -292,57 +292,57 @@ export const LAYOUT_CSS = `/* ---------- mobile-only layout (narrow viewport AND
      not force them into an icon-sized box: their child button would overflow
      that wrapper and paint over PermissionSelect. Keep the wrapper intrinsic;
      the model lane below is the one that sacrifices width. */
-  [data-phase] [class*="_card"]:has(textarea) [class*="_row"]:has([class*="_trailing"]) > :first-child > :nth-child(2) > :not([class*="_trigger"]) {
+  [data-phase] [class*="_card"]:has(textarea, [data-composer-input]) [class*="_row"]:has([class*="_trailing"]) > :first-child > :nth-child(2) > :not([class*="_trigger"]) {
     flex: 0 1 auto;
     min-width: 34px;
     max-width: max-content;
     overflow: visible;
   }
-  [data-phase] [class*="_card"]:has(textarea) [class*="_row"]:has([class*="_trailing"]) > :first-child > :nth-child(2) > [class*="_wrap"] > [class*="_chip"] {
+  [data-phase] [class*="_card"]:has(textarea, [data-composer-input]) [class*="_row"]:has([class*="_trailing"]) > :first-child > :nth-child(2) > [class*="_wrap"] > [class*="_chip"] {
     max-width: 100%;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap !important;
   }
   @container dsh-mobile-composer (max-width: 359px) {
-    [data-phase] [class*="_card"]:has(textarea) [class*="_row"]:has([class*="_trailing"]) > :first-child > :nth-child(2) > [class*="_trigger"] > [class*="_triggerLabel"] {
+    [data-phase] [class*="_card"]:has(textarea, [data-composer-input]) [class*="_row"]:has([class*="_trailing"]) > :first-child > :nth-child(2) > [class*="_trigger"] > [class*="_triggerLabel"] {
       display: none !important;
     }
   }
   /* Model selector: flexible and shrinkable, but never clipped.
      The root must be overflow:visible so the dropdown menu can render.
      The trigger itself clips the label text. */
-  [data-phase] [class*="_card"]:has(textarea) [class*="_root"]:has(> [class*="_trigger"][aria-haspopup="menu"]) {
+  [data-phase] [class*="_card"]:has(textarea, [data-composer-input]) [class*="_root"]:has(> [class*="_trigger"][aria-haspopup="menu"]) {
     flex: 0 1 auto;
     min-width: 0;
     overflow: visible;
   }
   @container dsh-mobile-composer (max-width: 359px) {
-    [data-phase] [class*="_card"]:has(textarea) [class*="_root"]:has(> [class*="_trigger"][aria-haspopup="menu"]) {
+    [data-phase] [class*="_card"]:has(textarea, [data-composer-input]) [class*="_root"]:has(> [class*="_trigger"][aria-haspopup="menu"]) {
       flex-basis: auto;
     }
   }
-  [data-phase] [class*="_card"]:has(textarea) [class*="_root"]:has(> [class*="_trigger"][aria-haspopup="menu"]) > [class*="_trigger"] {
+  [data-phase] [class*="_card"]:has(textarea, [data-composer-input]) [class*="_root"]:has(> [class*="_trigger"][aria-haspopup="menu"]) > [class*="_trigger"] {
     display: flex !important;
     width: 100%;
     max-width: 100%;
     min-width: 0;
     overflow: hidden;
   }
-  [data-phase] [class*="_card"]:has(textarea) [class*="_root"]:has(> [class*="_trigger"][aria-haspopup="menu"]) > [class*="_trigger"] > [class*="_triggerLabel"] {
+  [data-phase] [class*="_card"]:has(textarea, [data-composer-input]) [class*="_root"]:has(> [class*="_trigger"][aria-haspopup="menu"]) > [class*="_trigger"] > [class*="_triggerLabel"] {
     flex: 1 1 auto;
     min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap !important;
   }
-  [data-phase] [class*="_card"]:has(textarea) [class*="_root"]:has(> [class*="_trigger"]):not(:has(> [class*="_trigger"][aria-haspopup="menu"])) {
+  [data-phase] [class*="_card"]:has(textarea, [data-composer-input]) [class*="_root"]:has(> [class*="_trigger"]):not(:has(> [class*="_trigger"][aria-haspopup="menu"])) {
     flex: 0 0 auto;
   }
 
   /* Model switcher menu: center the dropdown on the now-shrinkable trigger,
      but never let it exceed the viewport on narrow phones. */
-  [data-phase] [class*="_card"]:has(textarea) [class*="_root"]:has(> [class*="_trigger"]) > [class*="_menu"] {
+  [data-phase] [class*="_card"]:has(textarea, [data-composer-input]) [class*="_root"]:has(> [class*="_trigger"]) > [class*="_menu"] {
     left: 50% !important;
     right: auto !important;
     transform: translateX(-50%) !important;
@@ -356,17 +356,17 @@ export const LAYOUT_CSS = `/* ---------- mobile-only layout (narrow viewport AND
      overflow. The fixed-size icon buttons are exempt: officially both are
      flex:none at a fixed size (plus 28x28, send 34x34) and must stay put,
      not participate in adaptation. */
-  [data-phase] [class*="_card"]:has(textarea) [class*="_row"]:has([class*="_trailing"]) > :first-child > :not([class*="_add"]) {
+  [data-phase] [class*="_card"]:has(textarea, [data-composer-input]) [class*="_row"]:has([class*="_trailing"]) > :first-child > :not([class*="_add"]) {
     flex-shrink: 1;
     min-width: 0;
   }
-  [data-phase] [class*="_card"]:has(textarea) [class*="_row"]:has([class*="_trailing"]) > [class*="_trailing"] > :not([class*="_primary"]) {
+  [data-phase] [class*="_card"]:has(textarea, [data-composer-input]) [class*="_row"]:has([class*="_trailing"]) > [class*="_trailing"] > :not([class*="_primary"]) {
     flex-shrink: 1;
     min-width: 0;
   }
   /* Pin the plus button at the left edge of the tools lane: official
      flex:none 28x28, never squeezed by narrower viewports. */
-  [data-phase] [class*="_card"]:has(textarea) [class*="_row"]:has([class*="_trailing"]) > :first-child > [class*="_add"] {
+  [data-phase] [class*="_card"]:has(textarea, [data-composer-input]) [class*="_row"]:has([class*="_trailing"]) > :first-child > [class*="_add"] {
     flex: none;
   }
   /* The context meter in the trailing lane is another fixed-size icon
@@ -375,7 +375,7 @@ export const LAYOUT_CSS = `/* ---------- mobile-only layout (narrow viewport AND
      the pinned send button. Keep the whole meter at its natural size; its
      trigger uses aria-haspopup="dialog", so the model-selector menu rules
      (keyed on "menu") still do not apply. */
-  [data-phase] [class*="_card"]:has(textarea) [class*="_row"]:has([class*="_trailing"]) > [class*="_trailing"] > [class*="_root"] {
+  [data-phase] [class*="_card"]:has(textarea, [data-composer-input]) [class*="_row"]:has([class*="_trailing"]) > [class*="_trailing"] > [class*="_root"] {
     flex: none;
     min-width: 0;
   }
@@ -386,7 +386,7 @@ export const LAYOUT_CSS = `/* ---------- mobile-only layout (narrow viewport AND
      unique aria-haspopup="dialog" trigger (no other composer control uses
      it), not the hashed class, so an upstream hash bump cannot silently
      unhook us. Knob: margin-right trim (-4px). */
-  [data-phase] [class*="_card"]:has(textarea) [class*="_row"]:has([class*="_trailing"]) > [class*="_trailing"] > [class*="_root"]:has(> [class*="_trigger"][aria-haspopup="dialog"]) {
+  [data-phase] [class*="_card"]:has(textarea, [data-composer-input]) [class*="_row"]:has([class*="_trailing"]) > [class*="_trailing"] > [class*="_root"]:has(> [class*="_trigger"][aria-haspopup="dialog"]) {
     margin-right: -4px;
   }
   /* The model pill joins the same right cluster: its margin-left:auto absorbs
@@ -396,7 +396,7 @@ export const LAYOUT_CSS = `/* ---------- mobile-only layout (narrow viewport AND
      on purpose: the pill root sits behind a display:contents wrapper, so a
      direct-child combinator silently misses (probe-verified). Within the
      trailing lane aria-haspopup="menu" belongs to the model trigger alone. */
-  [data-phase] [class*="_card"]:has(textarea) [class*="_row"]:has([class*="_trailing"]) > [class*="_trailing"] [class*="_root"]:has(> [class*="_trigger"][aria-haspopup="menu"]) {
+  [data-phase] [class*="_card"]:has(textarea, [data-composer-input]) [class*="_row"]:has([class*="_trailing"]) > [class*="_trailing"] [class*="_root"]:has(> [class*="_trigger"][aria-haspopup="menu"]) {
     margin-left: auto;
     margin-right: -4px;
   }
@@ -405,7 +405,7 @@ export const LAYOUT_CSS = `/* ---------- mobile-only layout (narrow viewport AND
      to 5px so the small ring no longer floats in its own button. 24x24 keeps
      the WCAG 2.2 minimum target size. Ring size itself is intentionally
      untouched -- enlarging it was rejected as attention-grabbing. */
-  [data-phase] [class*="_card"]:has(textarea) [class*="_row"]:has([class*="_trailing"]) > [class*="_trailing"] > [class*="_root"]:has(> [class*="_trigger"][aria-haspopup="dialog"]) > [class*="_trigger"] {
+  [data-phase] [class*="_card"]:has(textarea, [data-composer-input]) [class*="_row"]:has([class*="_trailing"]) > [class*="_trailing"] > [class*="_root"]:has(> [class*="_trigger"][aria-haspopup="dialog"]) > [class*="_trigger"] {
     width: 24px;
     height: 24px;
     padding: 0;
@@ -417,11 +417,11 @@ export const LAYOUT_CSS = `/* ---------- mobile-only layout (narrow viewport AND
      the pill nor the meter renders. The :has override zeroes it whenever
      either control is present, so two autos can never split the void and
      float the pill mid-lane. */
-  [data-phase] [class*="_card"]:has(textarea) [class*="_row"]:has([class*="_trailing"]) > [class*="_trailing"] > [class*="_primary"] {
+  [data-phase] [class*="_card"]:has(textarea, [data-composer-input]) [class*="_row"]:has([class*="_trailing"]) > [class*="_trailing"] > [class*="_primary"] {
     flex: none;
     margin-left: auto;
   }
-  [data-phase] [class*="_card"]:has(textarea) [class*="_row"]:has([class*="_trailing"]) > [class*="_trailing"]:has([class*="_trigger"][aria-haspopup="menu"], > [class*="_root"] > [class*="_trigger"][aria-haspopup="dialog"]) > [class*="_primary"] {
+  [data-phase] [class*="_card"]:has(textarea, [data-composer-input]) [class*="_row"]:has([class*="_trailing"]) > [class*="_trailing"]:has([class*="_trigger"][aria-haspopup="menu"], > [class*="_root"] > [class*="_trigger"][aria-haspopup="dialog"]) > [class*="_primary"] {
     margin-left: 0;
   }
 
