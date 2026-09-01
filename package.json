@@ -1,6 +1,6 @@
 {
   "name": "dsh-web-mobile",
-  "version": "2.5.8",
+  "version": "2.5.9",
   "description": "尽可能的使dsh适配竖屏等移动端设备",
   "license": "MIT",
   "author": "mexiaosh",
@@ -46,7 +46,7 @@
     "build": "tsc -p tsconfig.json && tsc -p tsconfig.client.json && node scripts/build-client.mjs",
     "verify": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.client.json --noEmit",
     "smoke:cdp": "node scripts/cdp-probe.mjs",
-    "test:core": "node --test tests/reconciler-core.test.ts tests/sidebar-swipe.test.ts tests/installed-list.test.ts tests/market-gallery-style.test.ts",
+    "test:core": "node --experimental-strip-types --test tests/reconciler-core.test.ts tests/sidebar-swipe.test.ts tests/installed-list.test.ts tests/market-gallery-style.test.ts",
     "prepack": "npm run build"
   },
   "dsh": {

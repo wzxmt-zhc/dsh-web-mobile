@@ -72,6 +72,17 @@ dsh plugin --profile web add link:/path/to/dsh-web-mobile
 
 ## 更新内容
 
+### v2.5.9
+
+**新功能**
+
+- **适配 dsh-file-viewer 插件，手机竖屏可用**：适配了 [dsh-file-viewer](https://github.com/liguobao/dsh-file-viewer) 插件（会话「文件查看器」标签页）。该插件未内置响应式 CSS，`min-width:0` 的 flex 面板在手机宽下横向溢出——路径被限额在 520px 挤着 5 键操作行、CSV/代码表头在内容滚动器里连成一列。现于移动分支下：面板自身不再横向滚动（横向滚动留给内容滚动器）、标题栏/状态栏压缩换行、触控目标放大到 34–44px、搜索/跳行/页码输入框字号提到 16px 规避 iOS 自动放大、`prefers-reduced-motion` 关闭动画
+- **文件查看器手势豁免**：打开文件查看器时左缘横滑让位给 CSV 表格/代码行原生滚动，不再误触侧边栏抽屉手势（与任务面板/SSH 同档）
+
+**优化**
+
+- `test:core` 脚本补 `--experimental-strip-types`（Node v22 直接跑 `.ts` 测试所需）
+
 ### v2.5.8
 
 **修复**

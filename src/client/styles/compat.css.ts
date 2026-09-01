@@ -812,6 +812,112 @@ export const COMPAT_CSS = `@media (max-width: 1023px) and (pointer: coarse) {
   background: var(--ds-border-color, #ccc) !important;
   border-radius: 4px !important;
 }
+
+  /* ---------- dsh-file-viewer (conversation.view tab「文件查看器」) ----------
+     The plugin ships NO responsive CSS: its min-width:0 flex panels overflow
+     on a phone — the titlebar caps the path at 520px beside a 5-button action
+     row, and CSV/code headers row-stick inside content scrollers. It renders
+     inline into the conversation view region (stable 'dsfv-*' prefix, injected
+     <style>), not a modal sheet, so the fixes here are: stop the PANEL from
+     scrolling horizontally (leave horizontal scrolling inside the content
+     scrollers), compress the titlebar/statusbar, enlarge touch targets, and
+     scope everything under [data-file-viewer-open] so only the active
+     file-viewer tab is affected. The marker is owned by the
+     file-viewer-open-marker reconciler task; nothing leaks to desktop because
+     this whole block lives inside the mobile media query. */
+
+  [data-mobile-nav="frame"][data-file-viewer-open] .dsfv-panel {
+    min-width: 0 !important;
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+  }
+  /* Titlebar: single compact row; path truncates, secondary meta hides on
+     narrow, the 5-button action row wraps to two rows of tall targets. */
+  [data-mobile-nav="frame"][data-file-viewer-open] .dsfv-titlebar {
+    gap: 4px !important;
+    padding: 6px 8px !important;
+    flex-wrap: nowrap !important;
+    min-width: 0 !important;
+  }
+  [data-mobile-nav="frame"][data-file-viewer-open] .dsfv-titlebar-path {
+    min-width: 0 !important;
+    padding-right: 4px !important;
+  }
+  [data-mobile-nav="frame"][data-file-viewer-open] .dsfv-path {
+    font-size: 13px !important;
+    min-width: 0 !important;
+    max-width: 220px !important;
+  }
+  [data-mobile-nav="frame"][data-file-viewer-open] .dsfv-titlebar-actions {
+    flex-wrap: wrap !important;
+    gap: 4px !important;
+    justify-content: flex-end !important;
+    margin-left: auto !important;
+  }
+  [data-mobile-nav="frame"][data-file-viewer-open] .dsfv-toolbar-btn {
+    min-height: 34px !important;
+    padding: 0 10px !important;
+    font-size: 13px !important;
+  }
+  [data-mobile-nav="frame"][data-file-viewer-open] .dsfv-icon-btn,
+  [data-mobile-nav="frame"][data-file-viewer-open] .dsfv-back-btn {
+    min-height: 34px !important;
+    min-width: 34px !important;
+  }
+  @media (max-width: 480px) {
+    [data-mobile-nav="frame"][data-file-viewer-open] .dsfv-meta {
+      display: none !important;
+    }
+  }
+  /* Status bar: wrap, safe-area bottom padding, compact. */
+  [data-mobile-nav="frame"][data-file-viewer-open] .dsfv-statusbar {
+    flex-wrap: wrap !important;
+    gap: 4px 10px !important;
+    padding: 4px 8px calc(4px + env(safe-area-inset-bottom, 0px)) !important;
+    font-size: 12px !important;
+  }
+  /* Content scrollers must own horizontal scrolling; the flex columns and the
+     renderer stack must not let content push the panel wide. */
+  [data-mobile-nav="frame"][data-file-viewer-open] .dsfv-renderer,
+  [data-mobile-nav="frame"][data-file-viewer-open] .dsfv-renderer-stack,
+  [data-mobile-nav="frame"][data-file-viewer-open] .dsfv-scroll,
+  [data-mobile-nav="frame"][data-file-viewer-open] .dsfv-csv-scroll,
+  [data-mobile-nav="frame"][data-file-viewer-open] .dsfv-code-body {
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+  [data-mobile-nav="frame"][data-file-viewer-open] .dsfv-scroll,
+  [data-mobile-nav="frame"][data-file-viewer-open] .dsfv-csv-scroll {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+  /* Browser / subtoolbar rows wrap; file rows get touch-friendly height. */
+  [data-mobile-nav="frame"][data-file-viewer-open] .dsfv-browser-nav,
+  [data-mobile-nav="frame"][data-file-viewer-open] .dsfv-subtoolbar {
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+    padding: 4px 8px !important;
+  }
+  [data-mobile-nav="frame"][data-file-viewer-open] .dsfv-file-row {
+    min-height: 44px !important;
+    padding: 8px 10px !important;
+  }
+  [data-mobile-nav="frame"][data-file-viewer-open] .dsfv-file-list [class*="name"] {
+    min-width: 0 !important;
+  }
+  /* Produced-file chips render in the conversation tail, outside the viewer
+     tab — keep tappable but not scoped to the marker. */
+  [data-mobile-nav="frame"] .dsfv-produced-chip,
+  [data-mobile-nav="frame"] .dsfv-produced-folder {
+    min-height: 40px !important;
+    padding: 0 12px !important;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    [data-mobile-nav="frame"][data-file-viewer-open] [class*="dsfv-"] {
+      transition: none !important;
+      animation: none !important;
+    }
+  }
 }
 
 `

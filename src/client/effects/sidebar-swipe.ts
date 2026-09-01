@@ -416,11 +416,15 @@ function modalOpen(): boolean {
   return document.querySelector('[aria-modal="true"]') !== null
 }
 
-/** True when a full-screen takeover (taskboard / ssh) owns the frame. */
+/** True when a full-screen takeover (taskboard / ssh) owns the frame, or the
+ *  dsh-file-viewer conversation tab is open. In both cases the drawer
+ *  edge-swipe gestures are disabled so horizontal content scrolling (kanban
+ *  columns, CSV tables, code lines) wins the left-edge start zone. */
 function takeoverActive(): boolean {
   return (
     document.documentElement.hasAttribute('data-dsh-taskboard-active') ||
-    document.documentElement.hasAttribute('data-dsh-ssh-active')
+    document.documentElement.hasAttribute('data-dsh-ssh-active') ||
+    document.querySelector('[data-file-viewer-open]') !== null
   )
 }
 

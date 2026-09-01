@@ -102,6 +102,18 @@ export const MISC_CSS = `@media (max-width: 1023px) and (pointer: coarse) {
     font-size: 16px !important;
   }
 
+  /* ---------- dsh-file-viewer inputs: kill iOS Safari auto-zoom ----------
+     Same rule as the ask composer above: the file viewer's search / jump-to-
+     line / pdf-page fields ship at 13-14px, which Safari auto-magnifies on
+     focus inside a panel that does not blur on tap-away. Raise them to 16px
+     on mobile so Safari skips the zoom. Scoped to the frame marker; the
+     viewer itself is scoped by [class*="dsfv-server"]'s stable dsfv prefix. */
+  [data-mobile-nav="frame"] [class*="dsfv-search-input"],
+  [data-mobile-nav="frame"] [class*="dsfv-jump-input"],
+  [data-mobile-nav="frame"] [class*="dsfv-page-input"] {
+    font-size: 16px !important;
+  }
+
   /* ---------- drawer session tree: skip off-screen rendering ----------
      The drawer mounts ~389 nodes at once (the open gesture early-commits
      the host state while the drawer is still off-screen), and during
